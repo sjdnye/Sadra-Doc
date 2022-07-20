@@ -13,4 +13,6 @@ interface ArticleRepository {
 
     suspend fun deleteArticle(article: Article)
 
+    suspend fun getArticlesByYear(year: String): List<Article>?
+
 }

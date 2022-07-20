@@ -58,6 +58,18 @@ fun AddEditArticleScreen(
     }
     Scaffold(
         scaffoldState = scaffoldState,
+        snackbarHost = {
+            // reuse default SnackbarHost to have default animation and timing handling
+            SnackbarHost(it) { data ->
+                // custom snackbar with the custom colors
+                Snackbar(
+                    //contentColor = ...,
+                    snackbarData = data,
+                    backgroundColor = MaterialTheme.colors.primary,
+
+                    )
+            }
+        },
         topBar = {
             TopAppBar(
                 title = {
@@ -88,7 +100,7 @@ fun AddEditArticleScreen(
                 .background(Color.White)
                 .padding(16.dp)
                 .padding(top = 10.dp)
-//                .verticalScroll(scrollState)
+                .verticalScroll(scrollState)
         ) {
 
             CustomTextField(
@@ -98,6 +110,7 @@ fun AddEditArticleScreen(
                 value = state.englishTitle,
                 hint = "Enter english title",
                 label = "English Title",
+                maxLine = 2,
                 valueChange = {
                     viewModel.onEvent(AddEditArticleEvent.ChangeEnglishTitle(it))
                 }
@@ -112,6 +125,7 @@ fun AddEditArticleScreen(
                 value = state.persianTitle,
                 hint = "Enter persian title",
                 label = "Persian Title",
+                maxLine = 2,
                 valueChange = {
                     viewModel.onEvent(AddEditArticleEvent.ChangePersianTitle(it))
                 }

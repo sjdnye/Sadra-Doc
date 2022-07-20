@@ -24,6 +24,7 @@ import com.example.summerproject.presentation.articles.ArticlesViewModel
 import com.example.summerproject.presentation.articles.component.navigationDrawer.DrawerBody
 import com.example.summerproject.presentation.articles.component.navigationDrawer.MenuItem
 import com.example.summerproject.presentation.destinations.AddEditArticleScreenDestination
+import com.example.summerproject.presentation.destinations.ExportArticleToExcelDestination
 import com.example.summerproject.ui.theme.LightBlue800
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
@@ -56,6 +57,7 @@ fun ArticlesScreen(
             SnackbarHost(hostState = it) { data ->
                 Snackbar(
                     actionColor = MaterialTheme.colors.onPrimary,
+                    backgroundColor = MaterialTheme.colors.primary,
                     snackbarData = data
                 )
             }
@@ -65,10 +67,10 @@ fun ArticlesScreen(
             DrawerBody(
                 items = listOf(
                     MenuItem(
-                        id = "home",
-                        title = "Home",
-                        icon = Icons.Default.Home,
-                        contentDescription = "Go to home screen",
+                        id = "excel",
+                        title = "Import data to Excel",
+                        icon = Icons.Default.ImportExport,
+                        contentDescription = "Go to import data screen",
                     ), MenuItem(
                         id = "settings",
                         title = "Settings",
@@ -83,7 +85,9 @@ fun ArticlesScreen(
                 ),
                 onItemClick = {
                     when (it.id) {
-                        "settings" -> {}
+                        "excel" -> {
+                            navigator.navigate(ExportArticleToExcelDestination())
+                        }
                     }
                     println("Clicked on ${it.title}")
                 }
@@ -119,7 +123,8 @@ fun ArticlesScreen(
                 OutlinedTextField(
                     modifier = Modifier
                         .clip(CircleShape)
-                        .background(Color.White),
+                        .background(Color.White)
+                        ,
                     value = state.searchQuery,
                     onValueChange = {
                         viewModel.onEvent(
@@ -131,13 +136,13 @@ fun ArticlesScreen(
                         Text(
                             text = "Search...",
                             modifier = Modifier,
-                            color = Color.Black
+                            color = MaterialTheme.colors.onBackground
                         )
                     },
                     maxLines = 1,
                     singleLine = true,
                     textStyle = TextStyle(
-                        color = Color.DarkGray
+                        color = MaterialTheme.colors.onBackground
                     )
                 )
 

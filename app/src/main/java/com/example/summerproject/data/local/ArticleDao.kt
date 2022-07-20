@@ -17,4 +17,7 @@ interface ArticleDao {
 
     @Delete
     suspend fun deleteArticle(article: Article)
+
+    @Query("SELECT * FROM article WHERE year = :year ORDER BY englishTitle ASC")
+    suspend fun getArticlesByYear(year: String): List<Article>?
 }

@@ -23,4 +23,8 @@ class ArticleRepositoryImpl(
     override suspend fun deleteArticle(article: Article) {
         dao.deleteArticle(article)
     }
+
+    override suspend fun getArticlesByYear(year: String): List<Article>? {
+       return dao.getArticlesByYear(year)
+    }
 }
