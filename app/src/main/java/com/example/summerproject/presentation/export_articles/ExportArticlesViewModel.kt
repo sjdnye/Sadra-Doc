@@ -133,7 +133,7 @@ class ExportArticlesViewModel @Inject constructor(
         sheet.setColumnWidth(3, 30 * 200)
         sheet.setColumnWidth(4, 30 * 200)
         sheet.setColumnWidth(5, 30 * 200)
-        sheet.setColumnWidth(6, 150 * 200)
+        sheet.setColumnWidth(6, 300 * 200)
         sheet.setColumnWidth(7, 10 * 200)
         sheet.setColumnWidth(8, 10 * 200)
         sheet.setColumnWidth(9, 30 * 200)
