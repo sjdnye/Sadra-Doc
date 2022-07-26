@@ -35,10 +35,10 @@ class AddEditArticleViewModel @Inject constructor(
             currentArticleId = article.id
             state = state.copy(author_name_1 = article.authorName_1)
             state = state.copy(author_family_1 = article.authorFamily_1)
-            state = state.copy(author_name_2 = article.authorName_2 )
-            state = state.copy(author_family_2 = article.authorFamily_2 )
-            state = state.copy(author_name_3 = article.authorName_3 )
-            state = state.copy(author_family_3 = article.authorFamily_3 )
+            state = state.copy(author_name_2 = article.authorName_2)
+            state = state.copy(author_family_2 = article.authorFamily_2)
+            state = state.copy(author_name_3 = article.authorName_3)
+            state = state.copy(author_family_3 = article.authorFamily_3)
             state = state.copy(persianTitle = article.persianTitle)
             state = state.copy(englishTitle = article.englishTitle)
             state = state.copy(placeOfPrinting = article.placeOfPrinting)
@@ -47,6 +47,11 @@ class AddEditArticleViewModel @Inject constructor(
             state = state.copy(institute = article.institute ?: "")
             state = state.copy(content = article.content)
             state = state.copy(year = article.year)
+            state = state.copy(author_affiliation_1 = article.authorAffiliation_1)
+            state = state.copy(author_affiliation_2 = article.authorAffiliation_2)
+            state = state.copy(author_affiliation_3 = article.authorAffiliation_3)
+            state = state.copy(articleTitle = article.articleTitle)
+            state = state.copy(articleType = article.articleType)
         }
     }
 
@@ -70,6 +75,21 @@ class AddEditArticleViewModel @Inject constructor(
             }
             is AddEditArticleEvent.ChangeAuthorFamily3 -> {
                 state = state.copy(author_family_3 = event.name)
+            }
+            is AddEditArticleEvent.ChangeAuthorAffiliation1 -> {
+                state = state.copy(author_affiliation_1 = event.affiliation)
+            }
+            is AddEditArticleEvent.ChangeAuthorAffiliation2 -> {
+                state = state.copy(author_affiliation_2 = event.affiliation)
+            }
+            is AddEditArticleEvent.ChangeAuthorAffiliation3 -> {
+                state = state.copy(author_affiliation_3 = event.affiliation)
+            }
+            is AddEditArticleEvent.ChangeArticleTitle -> {
+                state = state.copy(articleTitle = event.title)
+            }
+            is AddEditArticleEvent.ChangeArticleType -> {
+                state = state.copy(articleType = event.type)
             }
             is AddEditArticleEvent.ChangePersianTitle -> {
                 state = state.copy(persianTitle = event.name)
@@ -98,11 +118,11 @@ class AddEditArticleViewModel @Inject constructor(
             is AddEditArticleEvent.SaveArticle -> {
                 if (state.persianTitle.isBlank() or state.englishTitle.isBlank()
                     or state.author_name_1.isBlank() or state.author_family_1.isBlank()
-                ){
+                ) {
                     viewModelScope.launch {
                         _eventFlow.emit(UiEvent.ShowSnackBar("Please fill the parameters correctly"))
                     }
-                }else{
+                } else {
                     viewModelScope.launch {
                         articleUseCase.insertArticleUseCase(
                             Article(
@@ -113,6 +133,11 @@ class AddEditArticleViewModel @Inject constructor(
                                 authorFamily_2 = state.author_family_2,
                                 authorName_3 = state.author_name_3,
                                 authorFamily_3 = state.author_family_3,
+                                authorAffiliation_1 = state.author_affiliation_1,
+                                authorAffiliation_2 = state.author_affiliation_2,
+                                authorAffiliation_3 = state.author_affiliation_3,
+                                articleTitle = state.articleTitle,
+                                articleType = state.articleType,
                                 persianTitle = state.persianTitle,
                                 englishTitle = state.englishTitle,
                                 content = state.content,

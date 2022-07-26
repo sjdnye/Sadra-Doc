@@ -1,6 +1,7 @@
 package com.example.summerproject.presentation.articles.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -33,7 +34,7 @@ fun ArticleItem(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(cornerRadius))
-            .background(LightBlue50)
+            .background(if (isSystemInDarkTheme()) BlueGray800 else LightBlue50)
     ) {
 
         Column(
@@ -69,7 +70,7 @@ fun ArticleItem(
             Text(
                 text = writers,
                 maxLines = 2,
-                style = MaterialTheme.typography.body2.copy(color = BlueGray700),
+                style = MaterialTheme.typography.body2,
                 overflow = TextOverflow.Ellipsis
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -86,7 +87,7 @@ fun ArticleItem(
             Icon(
                 imageVector = Icons.Default.Delete,
                 contentDescription = "Delete article",
-                tint = MaterialTheme.colors.onSurface
+                tint = MaterialTheme.colors.onBackground
             )
 
         }

@@ -13,6 +13,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.MaterialTheme
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import com.example.summerproject.presentation.NavGraphs
 import com.example.summerproject.ui.theme.SummerProjectTheme
 import com.ramcosta.composedestinations.DestinationsNavHost
@@ -72,6 +76,11 @@ class MainActivity : ComponentActivity() {
             }
 
 
+        }
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)){ view, insets ->
+            val bottom = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+            view.updatePadding(bottom = bottom)
+            insets
         }
     }
 }

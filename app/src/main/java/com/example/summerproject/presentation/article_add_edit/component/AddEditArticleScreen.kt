@@ -1,6 +1,7 @@
 package com.example.summerproject.presentation.article_add_edit.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -8,16 +9,20 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Save
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.toSize
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.summerproject.data.local.Article
 import com.example.summerproject.presentation.article_add_edit.AddEditArticleEvent
@@ -97,7 +102,7 @@ fun AddEditArticleScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(MaterialTheme.colors.background)
                 .padding(16.dp)
                 .padding(top = 10.dp)
                 .verticalScroll(scrollState)
@@ -178,6 +183,16 @@ fun AddEditArticleScreen(
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
+            CustomTextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = viewModel.state.author_affiliation_1,
+                hint = "Enter 1's author's affiliation",
+                label = "1'st affiliation",
+                valueChange = {
+                    viewModel.onEvent(AddEditArticleEvent.ChangeAuthorAffiliation1(it))
+                }
+            )
+            Spacer(modifier = Modifier.height(16.dp))
             Row(
                 modifier = Modifier
                     .fillMaxWidth(),
@@ -209,6 +224,16 @@ fun AddEditArticleScreen(
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
+            CustomTextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = viewModel.state.author_affiliation_2,
+                hint = "Enter 2'nd author's affiliation",
+                label = "2'nd affiliation",
+                valueChange = {
+                    viewModel.onEvent(AddEditArticleEvent.ChangeAuthorAffiliation2(it))
+                }
+            )
+            Spacer(modifier = Modifier.height(16.dp))
             Row(
                 modifier = Modifier
                     .fillMaxWidth(),
@@ -239,6 +264,46 @@ fun AddEditArticleScreen(
                     }
                 )
 
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            CustomTextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = viewModel.state.author_affiliation_3,
+                hint = "Enter 3'rd author's affiliation",
+                label = "3'rd affiliation",
+                valueChange = {
+                    viewModel.onEvent(AddEditArticleEvent.ChangeAuthorAffiliation3(it))
+                }
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                CustomTextField(
+                    value = viewModel.state.articleTitle,
+                    hint = "Enter magazine's name",
+                    label = "Magazine's name",
+                    valueChange = {
+                        viewModel.onEvent(AddEditArticleEvent.ChangeArticleTitle(it))
+                    }
+                )
+                Spacer(modifier = Modifier.width(5.dp))
+//                CustomTextField(
+//                    value = viewModel.state.articleType,
+//                    hint = "ISI/Scientific/other",
+//                    label = "Magazine's type",
+//                    valueChange = {
+//                        viewModel.onEvent(AddEditArticleEvent.ChangeArticleType(it))
+//                    }
+//                )
+                DropDownMenuMagazineType(
+                    value = viewModel.state.articleType,
+                    changeArticleType = {
+                        viewModel.onEvent(AddEditArticleEvent.ChangeArticleType(it))
+                    }
+                )
             }
             Spacer(modifier = Modifier.height(16.dp))
             Row(
@@ -360,4 +425,61 @@ fun CustomNumberTextField(
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
     )
 
+}
+
+@Composable
+fun DropDownMenuMagazineType(value: String, changeArticleType: (selectedText: String) -> Unit) {
+
+    var expanded by remember { mutableStateOf(false) }
+    val suggestions = mutableListOf<String>()
+    suggestions.add("ISI")
+    suggestions.add("Scientific")
+    suggestions.add("Other")
+
+    var selectedText by remember { mutableStateOf(value) }
+
+    var textFieldSize by remember { mutableStateOf(Size.Zero) }
+
+    val icon = if (expanded)
+        Icons.Filled.KeyboardArrowUp
+    else
+        Icons.Filled.KeyboardArrowDown
+
+
+    Column() {
+        OutlinedTextField(
+            value = selectedText,
+            onValueChange = {
+                selectedText = it
+                changeArticleType(selectedText)
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .onGloballyPositioned { coordinates ->
+                    //This value is used to assign to the DropDown the same width
+                    textFieldSize = coordinates.size.toSize()
+                },
+            label = { Text("Magazine's type") },
+            trailingIcon = {
+                Icon(icon, "contentDescription",
+                    Modifier.clickable { expanded = !expanded })
+            },
+        )
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier
+                .width(with(LocalDensity.current) { textFieldSize.width.toDp() })
+        ) {
+            suggestions.forEach { label ->
+                DropdownMenuItem(onClick = {
+                    selectedText = label
+                    expanded = false
+                    changeArticleType(selectedText)
+                }) {
+                    Text(text = label)
+                }
+            }
+        }
+    }
 }

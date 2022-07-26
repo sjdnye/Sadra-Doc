@@ -62,7 +62,8 @@ fun ArticlesScreen(
                 )
             }
         },
-        drawerGesturesEnabled = scaffoldState.drawerState.isOpen,
+//        drawerGesturesEnabled = scaffoldState.drawerState.isOpen,
+
         drawerContent = {
             DrawerBody(
                 items = listOf(
@@ -86,6 +87,9 @@ fun ArticlesScreen(
                 onItemClick = {
                     when (it.id) {
                         "excel" -> {
+                            scope.launch {
+                                scaffoldState.drawerState.close()
+                            }
                             navigator.navigate(ExportArticleToExcelDestination())
                         }
                     }
@@ -123,7 +127,7 @@ fun ArticlesScreen(
                 OutlinedTextField(
                     modifier = Modifier
                         .clip(CircleShape)
-                        .background(Color.White)
+                        .background(MaterialTheme.colors.background)
                         ,
                     value = state.searchQuery,
                     onValueChange = {
