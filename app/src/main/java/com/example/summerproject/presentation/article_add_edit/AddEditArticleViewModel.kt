@@ -118,11 +118,17 @@ class AddEditArticleViewModel @Inject constructor(
             is AddEditArticleEvent.SaveArticle -> {
                 if (state.persianTitle.isBlank() or state.englishTitle.isBlank()
                     or state.author_name_1.isBlank() or state.author_family_1.isBlank()
+                    or state.articleTitle.isBlank() or state.articleType.isBlank()
+                    or state.institute.isBlank()
                 ) {
                     viewModelScope.launch {
-                        _eventFlow.emit(UiEvent.ShowSnackBar("Please fill the parameters correctly"))
+                        _eventFlow.emit(UiEvent.ShowSnackBar("Please fill the required parameters"))
                     }
-                } else {
+                }else if (state.year.isBlank()){
+                    viewModelScope.launch {
+                        _eventFlow.emit(UiEvent.ShowSnackBar("Please input the year"))
+                    }
+                } else{
                     viewModelScope.launch {
                         articleUseCase.insertArticleUseCase(
                             Article(

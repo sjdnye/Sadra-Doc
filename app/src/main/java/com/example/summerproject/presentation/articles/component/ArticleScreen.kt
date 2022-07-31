@@ -2,6 +2,7 @@ package com.example.summerproject.presentation.articles.component
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -47,7 +48,8 @@ fun ArticlesScreen(
                 },
                 backgroundColor = MaterialTheme.colors.secondary
             ) {
-                Icon(imageVector = Icons.Default.Add,
+                Icon(
+                    imageVector = Icons.Default.Add,
                     contentDescription = "Add article",
                 )
             }
@@ -113,6 +115,7 @@ fun ArticlesScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 IconButton(
+                    modifier = Modifier.weight(0.5f),
                     onClick = {
                         scope.launch {
                             scaffoldState.drawerState.open()
@@ -128,14 +131,18 @@ fun ArticlesScreen(
                     modifier = Modifier
                         .clip(CircleShape)
                         .background(MaterialTheme.colors.background)
-                        ,
+                        .weight(1.5f)
+                        .border(
+                            color = MaterialTheme.colors.primary,
+                            width = 2.dp,
+                            shape = CircleShape
+                        ),
                     value = state.searchQuery,
                     onValueChange = {
                         viewModel.onEvent(
                             ArticleEvent.SearchArticle(it)
                         )
                     },
-
                     placeholder = {
                         Text(
                             text = "Search...",
@@ -147,10 +154,12 @@ fun ArticlesScreen(
                     singleLine = true,
                     textStyle = TextStyle(
                         color = MaterialTheme.colors.onBackground
+                    ),
+
                     )
-                )
 
                 IconButton(
+                    modifier = Modifier.weight(0.5f),
                     onClick = {
                         viewModel.onEvent(ArticleEvent.ToggleOrderSection)
                     },
@@ -191,7 +200,7 @@ fun ArticlesScreen(
                             viewModel.onEvent(ArticleEvent.DeleteNote(article))
                             scope.launch {
                                 val result = scaffoldState.snackbarHostState.showSnackbar(
-                                    message = "Article deleted",
+                                    message = "Article was deleted",
                                     actionLabel = "Undo"
                                 )
                                 if (result == SnackbarResult.ActionPerformed) {

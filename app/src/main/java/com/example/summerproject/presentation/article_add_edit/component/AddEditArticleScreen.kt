@@ -1,14 +1,12 @@
 package com.example.summerproject.presentation.article_add_edit.component
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Save
@@ -27,6 +25,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.summerproject.data.local.Article
 import com.example.summerproject.presentation.article_add_edit.AddEditArticleEvent
 import com.example.summerproject.presentation.article_add_edit.AddEditArticleViewModel
+import com.example.summerproject.ui.theme.BlueGray300
+import com.example.summerproject.ui.theme.BlueGray700
 import com.example.summerproject.ui.theme.LightBlue700
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
@@ -78,10 +78,20 @@ fun AddEditArticleScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text = "Add/Edit Articles")
+                    Text(text = "Add/Edit Articles", color = MaterialTheme.colors.primary)
                 },
-                backgroundColor = MaterialTheme.colors.primary,
-                contentColor = MaterialTheme.colors.onPrimary,
+                backgroundColor = MaterialTheme.colors.background,
+                navigationIcon = {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Back to main panel",
+                        Modifier
+                            .clickable {
+                            navigator.popBackStack()
+                        }
+                    )
+                },
+                contentColor = MaterialTheme.colors.primary,
             )
         },
         floatingActionButton = {
@@ -94,7 +104,7 @@ fun AddEditArticleScreen(
                 Icon(
                     imageVector = Icons.Default.Save,
                     contentDescription = "Save Article",
-                    tint = MaterialTheme.colors.surface
+                    tint = MaterialTheme.colors.onPrimary
                 )
             }
         }
@@ -104,7 +114,6 @@ fun AddEditArticleScreen(
                 .fillMaxSize()
                 .background(MaterialTheme.colors.background)
                 .padding(16.dp)
-                .padding(top = 10.dp)
                 .verticalScroll(scrollState)
         ) {
 
@@ -115,7 +124,8 @@ fun AddEditArticleScreen(
                 value = state.englishTitle,
                 hint = "Enter english title",
                 label = "English Title",
-                maxLine = 2,
+                maxLine = 4
+                ,
                 valueChange = {
                     viewModel.onEvent(AddEditArticleEvent.ChangeEnglishTitle(it))
                 }
@@ -130,7 +140,7 @@ fun AddEditArticleScreen(
                 value = state.persianTitle,
                 hint = "Enter persian title",
                 label = "Persian Title",
-                maxLine = 2,
+                maxLine = 4,
                 valueChange = {
                     viewModel.onEvent(AddEditArticleEvent.ChangePersianTitle(it))
                 }
@@ -145,6 +155,7 @@ fun AddEditArticleScreen(
                 value = state.institute,
                 hint = "Enter institute's name",
                 label = "Institute",
+                maxLine = 4,
                 valueChange = {
                     viewModel.onEvent(AddEditArticleEvent.ChangeInstitute(it))
                 }
@@ -187,6 +198,7 @@ fun AddEditArticleScreen(
                 modifier = Modifier.fillMaxWidth(),
                 value = viewModel.state.author_affiliation_1,
                 hint = "Enter 1's author's affiliation",
+                maxLine = 2,
                 label = "1'st affiliation",
                 valueChange = {
                     viewModel.onEvent(AddEditArticleEvent.ChangeAuthorAffiliation1(it))
@@ -228,6 +240,7 @@ fun AddEditArticleScreen(
                 modifier = Modifier.fillMaxWidth(),
                 value = viewModel.state.author_affiliation_2,
                 hint = "Enter 2'nd author's affiliation",
+                maxLine = 2,
                 label = "2'nd affiliation",
                 valueChange = {
                     viewModel.onEvent(AddEditArticleEvent.ChangeAuthorAffiliation2(it))
@@ -271,8 +284,22 @@ fun AddEditArticleScreen(
                 value = viewModel.state.author_affiliation_3,
                 hint = "Enter 3'rd author's affiliation",
                 label = "3'rd affiliation",
+                maxLine = 2,
                 valueChange = {
                     viewModel.onEvent(AddEditArticleEvent.ChangeAuthorAffiliation3(it))
+                }
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            CustomTextField(
+                modifier = Modifier
+                    .fillMaxWidth()
+                ,
+                value = viewModel.state.articleTitle,
+                hint = "Magazine's name",
+                label = "Magazine's name",
+                maxLine = 3,
+                valueChange = {
+                    viewModel.onEvent(AddEditArticleEvent.ChangeArticleTitle(it))
                 }
             )
             Spacer(modifier = Modifier.height(16.dp))
@@ -282,22 +309,17 @@ fun AddEditArticleScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 CustomTextField(
-                    value = viewModel.state.articleTitle,
-                    hint = "Enter magazine's name",
-                    label = "Magazine's name",
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(5.dp))
+                        .fillMaxWidth(0.5f),
+                    value = state.placeOfPrinting,
+                    hint = "Enter Country",
+                    label = "Country",
                     valueChange = {
-                        viewModel.onEvent(AddEditArticleEvent.ChangeArticleTitle(it))
+                        viewModel.onEvent(AddEditArticleEvent.ChangePlaceOfPrinting(it))
                     }
                 )
                 Spacer(modifier = Modifier.width(5.dp))
-//                CustomTextField(
-//                    value = viewModel.state.articleType,
-//                    hint = "ISI/Scientific/other",
-//                    label = "Magazine's type",
-//                    valueChange = {
-//                        viewModel.onEvent(AddEditArticleEvent.ChangeArticleType(it))
-//                    }
-//                )
                 DropDownMenuMagazineType(
                     value = viewModel.state.articleType,
                     changeArticleType = {
@@ -312,18 +334,7 @@ fun AddEditArticleScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                CustomTextField(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(5.dp))
-                        .weight(1f),
-                    value = state.placeOfPrinting,
-                    hint = "Enter Country",
-                    label = "Country",
-                    valueChange = {
-                        viewModel.onEvent(AddEditArticleEvent.ChangePlaceOfPrinting(it))
-                    }
-                )
-                Spacer(modifier = Modifier.width(5.dp))
+
                 CustomNumberTextField(
                     modifier = Modifier
                         .clip(RoundedCornerShape(5.dp))
@@ -335,14 +346,7 @@ fun AddEditArticleScreen(
                         viewModel.onEvent(AddEditArticleEvent.ChangeYear(it))
                     }
                 )
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+                Spacer(modifier = Modifier.width(5.dp))
                 CustomNumberTextField(
                     modifier = Modifier
                         .clip(RoundedCornerShape(5.dp))
@@ -367,15 +371,15 @@ fun AddEditArticleScreen(
                     }
                 )
             }
+
             Spacer(modifier = Modifier.height(16.dp))
             CustomTextField(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .fillMaxHeight(),
+                    .fillMaxSize(),
                 value = state.content,
                 hint = "Enter brief summary of BOOK/ARTICLE",
-                label = "Content",
-                maxLine = 10,
+                label = "Abstract",
+                maxLine = 30,
                 valueChange = {
                     viewModel.onEvent(AddEditArticleEvent.ChangeContent(it))
                 }
@@ -412,6 +416,7 @@ fun CustomNumberTextField(
     value: String,
     hint: String,
     label: String,
+    maxLine: Int = 1,
     valueChange: (text: String) -> Unit
 ) {
     OutlinedTextField(
@@ -420,9 +425,10 @@ fun CustomNumberTextField(
         onValueChange = {
             valueChange(it)
         },
+        maxLines = maxLine,
         placeholder = { Text(text = hint) },
         label = { Text(text = label) },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
     )
 
 }
@@ -446,7 +452,7 @@ fun DropDownMenuMagazineType(value: String, changeArticleType: (selectedText: St
         Icons.Filled.KeyboardArrowDown
 
 
-    Column() {
+    Column(modifier = Modifier.fillMaxSize()) {
         OutlinedTextField(
             value = selectedText,
             onValueChange = {
@@ -464,6 +470,7 @@ fun DropDownMenuMagazineType(value: String, changeArticleType: (selectedText: St
                 Icon(icon, "contentDescription",
                     Modifier.clickable { expanded = !expanded })
             },
+            readOnly = true,
         )
         DropdownMenu(
             expanded = expanded,

@@ -1,6 +1,7 @@
 package com.example.summerproject.presentation.export_articles.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -8,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.runtime.*
@@ -51,7 +53,7 @@ fun ExportArticleToExcel(
     LaunchedEffect(key1 = true) {
         viewModel.eventFlow.collectLatest { event ->
             when (event) {
-                is  UiEvent.ShowSnackBar-> {
+                is UiEvent.ShowSnackBar -> {
                     scope.launch {
                         scaffoldState.snackbarHostState.showSnackbar(
                             message = event.message,
@@ -73,14 +75,38 @@ fun ExportArticleToExcel(
                     snackbarData = data,
                     backgroundColor = MaterialTheme.colors.primary,
 
-                )
+                    )
             }
+        },
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(text = "Import articles", color = MaterialTheme.colors.primary)
+                },
+                backgroundColor = MaterialTheme.colors.background,
+                navigationIcon = {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Back to main panel",
+                        Modifier
+                            .clickable {
+                                navigator.popBackStack()
+                            }
+                    )
+                },
+                contentColor = MaterialTheme.colors.primary,
+            )
         }
     ) {
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(30.dp)
         ) {
-
+            Text(text = "Select a specific year:",
+                style = MaterialTheme.typography.body2
+          )
+            Spacer(modifier = Modifier.height(5.dp))
             DropDownMenuYear(exportData = {
                 selectedYear = it
                 viewModel.getArticlesByYear(selectedYear)
@@ -90,7 +116,6 @@ fun ExportArticleToExcel(
 
             Text(
                 modifier = Modifier
-                    .padding(20.dp)
                     .align(CenterHorizontally),
                 text = "${viewModel.numberOfArticles} article(s) was found",
                 textAlign = TextAlign.Center,
@@ -102,10 +127,11 @@ fun ExportArticleToExcel(
             )
 
             Spacer(modifier = Modifier.height(30.dp))
+
             ButtonGradiant(
                 modifier = Modifier
                     .align(CenterHorizontally)
-                    .clip(RoundedCornerShape(20.dp)),
+                    .clip(CircleShape),
                 text = "Import to excel file",
                 textColor = MaterialTheme.colors.onPrimary,
                 gradiant = Brush.horizontalGradient(
@@ -120,10 +146,6 @@ fun ExportArticleToExcel(
             )
         }
     }
-
-
-
-
 }
 
 @Composable
@@ -144,7 +166,7 @@ fun DropDownMenuYear(exportData: (selectedText: String) -> Unit) {
         Icons.Filled.KeyboardArrowDown
 
 
-    Column(Modifier.padding(20.dp)) {
+    Column() {
         OutlinedTextField(
             value = selectedText,
             onValueChange = {
@@ -191,22 +213,23 @@ fun ButtonGradiant(
     modifier: Modifier = Modifier,
     onCLick: () -> Unit
 ) {
+
     Button(
         colors = ButtonDefaults.buttonColors(
             backgroundColor = Color.Transparent
         ),
         contentPadding = PaddingValues(),
         onClick = { onCLick() },
-        modifier = modifier
-
+        modifier = modifier,
+        elevation = null
     ) {
         Box(
             modifier = Modifier
                 .background(gradiant)
+                .clip(CircleShape)
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             Text(text = text, color = textColor)
-
         }
     }
 }

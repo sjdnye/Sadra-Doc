@@ -43,7 +43,7 @@ class ExportArticlesViewModel @Inject constructor(
         if (isAccessGranted()) {
             if (numberOfArticles == 0) {
                 viewModelScope.launch {
-                    _eventFlow.emit(UiEvent.ShowSnackBar("There is nothing to export!!"))
+                    _eventFlow.emit(UiEvent.ShowSnackBar("There is nothing to import!!"))
                 }
             } else {
                 createX1File()
@@ -123,6 +123,12 @@ class ExportArticlesViewModel @Inject constructor(
         cell.setCellValue("Institute")
 
         cell = row.createCell(10)
+        cell.setCellValue("Magazine's name")
+
+        cell = row.createCell(11)
+        cell.setCellValue("Magazine's type")
+
+        cell = row.createCell(12)
         cell.setCellValue("Year")
 
 
@@ -133,11 +139,13 @@ class ExportArticlesViewModel @Inject constructor(
         sheet.setColumnWidth(3, 30 * 200)
         sheet.setColumnWidth(4, 30 * 200)
         sheet.setColumnWidth(5, 30 * 200)
-        sheet.setColumnWidth(6, 300 * 200)
+        sheet.setColumnWidth(6, 200 * 200)
         sheet.setColumnWidth(7, 10 * 200)
         sheet.setColumnWidth(8, 10 * 200)
-        sheet.setColumnWidth(9, 30 * 200)
-        sheet.setColumnWidth(10, 10 * 200)
+        sheet.setColumnWidth(9, 150 * 200)
+        sheet.setColumnWidth(10, 70 * 200)
+        sheet.setColumnWidth(11, 20 * 200)
+        sheet.setColumnWidth(12, 10 * 200)
 
 
         for (i in 0 until articles!!.size) {
@@ -173,21 +181,29 @@ class ExportArticlesViewModel @Inject constructor(
             cell.setCellValue(articles!![i].institute)
 
             cell = row1.createCell(10)
+            cell.setCellValue(articles!![i].articleTitle)
+
+            cell = row1.createCell(11)
+            cell.setCellValue(articles!![i].articleType)
+
+            cell = row1.createCell(12)
             cell.setCellValue(articles!![i].year)
 
 
             //column width
-            sheet.setColumnWidth(0, 20 * 200)
-            sheet.setColumnWidth(1, 20 * 200)
-            sheet.setColumnWidth(2, 20 * 200)
-            sheet.setColumnWidth(3, 20 * 200)
-            sheet.setColumnWidth(4, 20 * 200)
-            sheet.setColumnWidth(5, 20 * 200)
-            sheet.setColumnWidth(6, 50 * 200)
+            sheet.setColumnWidth(0, 30 * 200)
+            sheet.setColumnWidth(1, 30 * 200)
+            sheet.setColumnWidth(2, 30 * 200)
+            sheet.setColumnWidth(3, 30 * 200)
+            sheet.setColumnWidth(4, 30 * 200)
+            sheet.setColumnWidth(5, 30 * 200)
+            sheet.setColumnWidth(6, 200 * 200)
             sheet.setColumnWidth(7, 10 * 200)
             sheet.setColumnWidth(8, 10 * 200)
-            sheet.setColumnWidth(9, 30 * 200)
-            sheet.setColumnWidth(10, 10 * 200)
+            sheet.setColumnWidth(9, 150 * 200)
+            sheet.setColumnWidth(10, 70 * 200)
+            sheet.setColumnWidth(11, 20 * 200)
+            sheet.setColumnWidth(12, 10 * 200)
         }
         val folderName = "Import Excel"
         val fileName = "${folderName}${System.currentTimeMillis()}.xls"
@@ -210,7 +226,7 @@ class ExportArticlesViewModel @Inject constructor(
             outputStream.close()
 
             viewModelScope.launch {
-                _eventFlow.emit(UiEvent.ShowSnackBar("Articles added to  excel file successfully!"))
+                _eventFlow.emit(UiEvent.ShowSnackBar("Excel file was created in \"/storage/emulated/0/Import Excel/\" successfully!"))
             }
 
         } catch (e: Exception) {
