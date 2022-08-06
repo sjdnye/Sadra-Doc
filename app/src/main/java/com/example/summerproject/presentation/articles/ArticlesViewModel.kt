@@ -9,20 +9,22 @@ import com.example.summerproject.data.local.Article
 import com.example.summerproject.domain.use_case.ArticleUseCase
 import com.example.summerproject.domain.utils.ArticleOrder
 import com.example.summerproject.domain.utils.OrderType
+import com.example.summerproject.presentation.article_add_edit.AddEditArticleViewModel
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ArticlesViewModel @Inject constructor(
     private val articleUseCase: ArticleUseCase,
-    private val auth: FirebaseAuth
+    private val auth: FirebaseAuth,
+    private val firestore: FirebaseFirestore
 ) : ViewModel() {
 
     var state by mutableStateOf(ArticleState())
@@ -31,6 +33,12 @@ class ArticlesViewModel @Inject constructor(
     private var recentlyArticleDeleted: Article? = null
 
     private var getArticlesJob: Job? = null
+
+    var isLoading by mutableStateOf(false)
+    private set
+
+    private val _eventFlow = MutableSharedFlow<ArticleScreenUi>()
+    val eventFlow = _eventFlow.asSharedFlow()
 
 
     init {
@@ -51,11 +59,7 @@ class ArticlesViewModel @Inject constructor(
                 getArticles(state.searchQuery,state.articleOrder)
             }
             is ArticleEvent.DeleteNote -> {
-                viewModelScope.launch {
-                    articleUseCase.deleteArticleUseCase(event.article)
-                    recentlyArticleDeleted = event.article
-                }
-
+                deleteArticleFromFireStore(event.article)
             }
             is ArticleEvent.SearchArticle -> {
                 state = state.copy(searchQuery = event.query)
@@ -63,20 +67,52 @@ class ArticlesViewModel @Inject constructor(
             }
 
             is ArticleEvent.RestoreNote -> {
-                viewModelScope.launch {
-                    articleUseCase.insertArticleUseCase(recentlyArticleDeleted?: return@launch)
-                    recentlyArticleDeleted = null
-                }
+                restoreArticleToFireStore()
             }
             is ArticleEvent.ToggleOrderSection -> {
                 state = state.copy(isOrderSectionVisible = !state.isOrderSectionVisible)
             }
-//            is ArticleEvent.LogOut -> {
-//                CoroutineScope(Dispatchers.IO).launch {
-//                    auth.signOut()
-//                }
-//            }
+
+            else -> {}
         }
+    }
+
+    private fun restoreArticleToFireStore() {
+     recentlyArticleDeleted?.let {
+         isLoading = true
+         firestore.collection("articles").document(recentlyArticleDeleted!!.fireStoreId!!).set(recentlyArticleDeleted!!).addOnCompleteListener {
+             if (it.isSuccessful && it.isComplete){
+                 viewModelScope.launch {
+                     articleUseCase.insertArticleUseCase(recentlyArticleDeleted?: return@launch)
+                     recentlyArticleDeleted = null
+                 }
+             }else{
+                 viewModelScope.launch {
+                     _eventFlow.emit(ArticleScreenUi.ShowMessage(it.exception.toString()))
+                 }
+             }
+             isLoading = false
+         }
+     }
+    }
+
+    private fun deleteArticleFromFireStore(article: Article) {
+        isLoading = true
+        firestore.collection("articles").document(article.fireStoreId!!).delete().addOnCompleteListener {
+            if (it.isComplete && it.isSuccessful){
+                viewModelScope.launch {
+                    articleUseCase.deleteArticleUseCase(article)
+                    recentlyArticleDeleted = article
+                    _eventFlow.emit(ArticleScreenUi.DeleteArticleCompleted)
+                }
+            }else {
+                viewModelScope.launch {
+                    _eventFlow.emit(ArticleScreenUi.ShowMessage(it.exception.toString()))
+                }
+            }
+            isLoading = false
+        }
+
     }
 
 
@@ -89,6 +125,11 @@ class ArticlesViewModel @Inject constructor(
             )
         }
             .launchIn(viewModelScope)
+    }
+
+    sealed class ArticleScreenUi(){
+        object DeleteArticleCompleted : ArticleScreenUi()
+        data class ShowMessage(val message : String) : ArticleScreenUi()
     }
 
 }

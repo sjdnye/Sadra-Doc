@@ -19,5 +19,6 @@ data class AddEditArticleState(
     val vol: String = "",
     val No: String = "",
     val institute: String = "",
-    val content: String = ""
+    val content: String = "",
+    val fireStoreId: String? = null
 )

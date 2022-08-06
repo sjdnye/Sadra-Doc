@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.summerproject.data.local.Article
 import com.example.summerproject.domain.use_case.ArticleUseCase
+import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -17,6 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AddEditArticleViewModel @Inject constructor(
     private val articleUseCase: ArticleUseCase,
+    private val fireStore: FirebaseFirestore,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -24,6 +26,9 @@ class AddEditArticleViewModel @Inject constructor(
     private var currentArticleId: Int? = null
 
     var state by mutableStateOf(AddEditArticleState())
+        private set
+
+    var isLoading by mutableStateOf(false)
         private set
 
 
@@ -52,6 +57,7 @@ class AddEditArticleViewModel @Inject constructor(
             state = state.copy(author_affiliation_3 = article.authorAffiliation_3)
             state = state.copy(articleTitle = article.articleTitle)
             state = state.copy(articleType = article.articleType)
+            state = state.copy(fireStoreId = article.fireStoreId)
         }
     }
 
@@ -124,47 +130,85 @@ class AddEditArticleViewModel @Inject constructor(
                     viewModelScope.launch {
                         _eventFlow.emit(UiEvent.ShowSnackBar("Please fill the required parameters"))
                     }
-                }else if (state.year.isBlank()){
+                } else if (state.year.isBlank()) {
                     viewModelScope.launch {
                         _eventFlow.emit(UiEvent.ShowSnackBar("Please input the year"))
                     }
-                } else{
-                    viewModelScope.launch {
-                        articleUseCase.insertArticleUseCase(
-                            Article(
-                                id = currentArticleId,
-                                authorName_1 = state.author_name_1,
-                                authorFamily_1 = state.author_family_1,
-                                authorName_2 = state.author_name_2,
-                                authorFamily_2 = state.author_family_2,
-                                authorName_3 = state.author_name_3,
-                                authorFamily_3 = state.author_family_3,
-                                authorAffiliation_1 = state.author_affiliation_1,
-                                authorAffiliation_2 = state.author_affiliation_2,
-                                authorAffiliation_3 = state.author_affiliation_3,
-                                articleTitle = state.articleTitle,
-                                articleType = state.articleType,
-                                persianTitle = state.persianTitle,
-                                englishTitle = state.englishTitle,
-                                content = state.content,
-                                institute = state.institute,
-                                articleAddTimeToDatabase = System.currentTimeMillis(),
-                                placeOfPrinting = state.placeOfPrinting,
-                                year = state.year,
-                                vol = state.vol,
-                                No = state.No
-                            )
-                        )
-
-                        _eventFlow.emit(UiEvent.SaveNote)
+                } else {
+                    val article = Article(
+                        id = currentArticleId,
+                        authorName_1 = state.author_name_1,
+                        authorFamily_1 = state.author_family_1,
+                        authorName_2 = state.author_name_2,
+                        authorFamily_2 = state.author_family_2,
+                        authorName_3 = state.author_name_3,
+                        authorFamily_3 = state.author_family_3,
+                        authorAffiliation_1 = state.author_affiliation_1,
+                        authorAffiliation_2 = state.author_affiliation_2,
+                        authorAffiliation_3 = state.author_affiliation_3,
+                        articleTitle = state.articleTitle,
+                        articleType = state.articleType,
+                        persianTitle = state.persianTitle,
+                        englishTitle = state.englishTitle,
+                        content = state.content,
+                        institute = state.institute,
+                        articleAddTimeToDatabase = System.currentTimeMillis(),
+                        placeOfPrinting = state.placeOfPrinting,
+                        year = state.year,
+                        vol = state.vol,
+                        No = state.No,
+                        fireStoreId = state.fireStoreId
+                    )
+                    if (state.fireStoreId == null) {
+                        addToFireStoreDatabase(article)
+                    } else {
+                        updateArticleInFireStore(article)
                     }
                 }
             }
-
-
         }
     }
 
+    private fun updateArticleInFireStore(article: Article) {
+        isLoading = true
+        val dbCollection = fireStore.collection("articles")
+        article.fireStoreId?.let { fireStoreId ->
+            dbCollection.document(fireStoreId).set(article).addOnCompleteListener {
+                if (it.isSuccessful && it.isComplete) {
+                    viewModelScope.launch {
+                        articleUseCase.insertArticleUseCase(article)
+                        _eventFlow.emit(UiEvent.SaveNote)
+                    }
+                } else {
+                    viewModelScope.launch {
+                        _eventFlow.emit(UiEvent.ShowSnackBar(it.exception.toString()))
+                    }
+                }
+                isLoading = false
+            }
+        }
+    }
+
+    private fun addToFireStoreDatabase(article: Article) {
+        isLoading = true
+        val dbCollection = fireStore.collection("articles")
+        val tempId = dbCollection.document().id
+        article.fireStoreId = tempId
+        dbCollection.document(tempId).set(article).addOnCompleteListener {
+            if (it.isSuccessful && it.isComplete) {
+                viewModelScope.launch {
+                    articleUseCase.insertArticleUseCase(article)
+                    _eventFlow.emit(UiEvent.SaveNote)
+                }
+            } else {
+                viewModelScope.launch {
+                    _eventFlow.emit(UiEvent.ShowSnackBar(it.exception.toString()))
+                }
+            }
+            isLoading = false
+        }
+
+    }
 
     sealed class UiEvent {
         data class ShowSnackBar(val message: String) : UiEvent()

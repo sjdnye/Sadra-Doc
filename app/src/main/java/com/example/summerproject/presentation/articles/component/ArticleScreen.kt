@@ -11,10 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,6 +38,7 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavController
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import dagger.internal.InjectedFieldSignature
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collectLatest
 import javax.inject.Inject
 import kotlin.math.roundToInt
 
@@ -96,6 +94,28 @@ fun ArticlesScreen(
                 val newOffset = fabOffsetHeightPx.value + delta
                 fabOffsetHeightPx.value = newOffset.coerceIn(-fabHeightPx, 0f)
                 return Offset.Zero
+            }
+        }
+    }
+    LaunchedEffect(key1 = true) {
+        viewModel.eventFlow.collectLatest { event ->
+            when (event) {
+                is ArticlesViewModel.ArticleScreenUi.DeleteArticleCompleted -> {
+                    scope.launch {
+                        val result = scaffoldState.snackbarHostState.showSnackbar(
+                            message = "Article was deleted",
+                            actionLabel = "Undo"
+                        )
+                        if (result == SnackbarResult.ActionPerformed) {
+                            viewModel.onEvent(ArticleEvent.RestoreNote)
+                        }
+                    }
+                }
+                is ArticlesViewModel.ArticleScreenUi.ShowMessage -> {
+                    scaffoldState.snackbarHostState.showSnackbar(
+                        message = event.message
+                    )
+                }
             }
         }
     }
@@ -163,115 +183,111 @@ fun ArticlesScreen(
             )
         }
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colors.primary),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                IconButton(
-                    modifier = Modifier.weight(0.5f),
-                    onClick = {
-                        scope.launch {
-                            scaffoldState.drawerState.open()
-                        }
-                    }) {
-                    Icon(
-                        imageVector = Icons.Default.Menu,
-                        contentDescription = "Navigation drawer",
-                        tint = Color.White
-                    )
-                }
-                OutlinedTextField(
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colors.background)
-                        .weight(1.5f)
-                        .border(
-                            color = MaterialTheme.colors.primary,
-                            width = 2.dp,
-                            shape = CircleShape
-                        ),
-                    value = state.searchQuery,
-                    onValueChange = {
-                        viewModel.onEvent(
-                            ArticleEvent.SearchArticle(it)
-                        )
-                    },
-                    placeholder = {
-                        Text(
-                            text = "Search...",
-                            modifier = Modifier,
-                            color = MaterialTheme.colors.onBackground
-                        )
-                    },
-                    maxLines = 1,
-                    singleLine = true,
-                    textStyle = TextStyle(
-                        color = MaterialTheme.colors.onBackground
-                    ),
-
-                    )
-
-                IconButton(
-                    modifier = Modifier.weight(0.5f),
-                    onClick = {
-                        viewModel.onEvent(ArticleEvent.ToggleOrderSection)
-                    },
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Sort,
-                        contentDescription = "Sort",
-                        tint = Color.White
-                    )
-                }
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (viewModel.isLoading){
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
-            AnimatedVisibility(
-                visible = state.isOrderSectionVisible,
-                enter = fadeIn() + slideInVertically(),
-                exit = fadeOut() + slideOutVertically()
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
             ) {
-                OrderSection(
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 16.dp),
-                    articleOrder = state.articleOrder,
-                    onOrderChange = {
-                        viewModel.onEvent(ArticleEvent.Order(it))
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colors.primary),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    IconButton(
+                        modifier = Modifier.weight(0.5f),
+                        onClick = {
+                            scope.launch {
+                                scaffoldState.drawerState.open()
+                            }
+                        }) {
+                        Icon(
+                            imageVector = Icons.Default.Menu,
+                            contentDescription = "Navigation drawer",
+                            tint = Color.White
+                        )
                     }
-                )
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(state.articles) { article ->
-                    ArticleItem(
-                        article = article,
+                    OutlinedTextField(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colors.background)
+                            .weight(1.5f)
+                            .border(
+                                color = MaterialTheme.colors.primary,
+                                width = 2.dp,
+                                shape = CircleShape
+                            ),
+                        value = state.searchQuery,
+                        onValueChange = {
+                            viewModel.onEvent(
+                                ArticleEvent.SearchArticle(it)
+                            )
+                        },
+                        placeholder = {
+                            Text(
+                                text = "Search...",
+                                modifier = Modifier,
+                                color = MaterialTheme.colors.onBackground
+                            )
+                        },
+                        maxLines = 1,
+                        singleLine = true,
+                        textStyle = TextStyle(
+                            color = MaterialTheme.colors.onBackground
+                        ),
+
+                        )
+
+                    IconButton(
+                        modifier = Modifier.weight(0.5f),
+                        onClick = {
+                            viewModel.onEvent(ArticleEvent.ToggleOrderSection)
+                        },
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Sort,
+                            contentDescription = "Sort",
+                            tint = Color.White
+                        )
+                    }
+                }
+                AnimatedVisibility(
+                    visible = state.isOrderSectionVisible,
+                    enter = fadeIn() + slideInVertically(),
+                    exit = fadeOut() + slideOutVertically()
+                ) {
+                    OrderSection(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable {
-                                navigator.navigate(AddEditArticleScreenDestination(article = article))
-                            },
-                        onDeleteClick = {
-                            viewModel.onEvent(ArticleEvent.DeleteNote(article))
-                            scope.launch {
-                                val result = scaffoldState.snackbarHostState.showSnackbar(
-                                    message = "Article was deleted",
-                                    actionLabel = "Undo"
-                                )
-                                if (result == SnackbarResult.ActionPerformed) {
-                                    viewModel.onEvent(ArticleEvent.RestoreNote)
-                                }
-                            }
+                            .padding(vertical = 16.dp),
+                        articleOrder = state.articleOrder,
+                        onOrderChange = {
+                            viewModel.onEvent(ArticleEvent.Order(it))
                         }
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(state.articles) { article ->
+                        ArticleItem(
+                            article = article,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    navigator.navigate(AddEditArticleScreenDestination(article = article))
+                                },
+                            onDeleteClick = {
+                                viewModel.onEvent(ArticleEvent.DeleteNote(article))
+                            }
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
                 }
             }
         }

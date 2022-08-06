@@ -3,6 +3,7 @@ package com.example.summerproject.data.local
 import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.google.firebase.firestore.Exclude
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -29,7 +30,9 @@ data class Article(
     val vol: String = "",
     val No: String = "",
     val institute: String = "",
-    val content: String
+    val content: String,
+    @get:Exclude
+    var fireStoreId:String? = null
 ): Parcelable
 
 
