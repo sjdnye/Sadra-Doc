@@ -9,4 +9,5 @@ sealed class ArticleEvent {
     data class SearchArticle(val query: String): ArticleEvent()
     object RestoreNote : ArticleEvent()
     object ToggleOrderSection: ArticleEvent()
+    object LogOut: ArticleEvent()
 }

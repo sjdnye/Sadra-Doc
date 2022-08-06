@@ -12,39 +12,104 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.summerproject.presentation.articles.ArticleEvent
 import com.example.summerproject.presentation.articles.ArticlesViewModel
 import com.example.summerproject.presentation.articles.component.navigationDrawer.DrawerBody
 import com.example.summerproject.presentation.articles.component.navigationDrawer.MenuItem
-import com.example.summerproject.presentation.destinations.AddEditArticleScreenDestination
-import com.example.summerproject.presentation.destinations.ExportArticleToExcelDestination
+import com.example.summerproject.presentation.destinations.*
 import com.example.summerproject.ui.theme.LightBlue800
+import com.example.utils.Admin_Uid
+import com.google.firebase.auth.FirebaseAuth
 import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.navigation.DestinationsNavController
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import kotlinx.coroutines.launch
+import dagger.internal.InjectedFieldSignature
+import kotlinx.coroutines.*
+import javax.inject.Inject
+import kotlin.math.roundToInt
 
-@Destination(start = true)
+@Destination(route = "/ArticleScreen")
 @Composable
 fun ArticlesScreen(
     navigator: DestinationsNavigator,
     viewModel: ArticlesViewModel = hiltViewModel()
 ) {
+
+    var drawerItems = mutableListOf<MenuItem>(
+        MenuItem(
+            id = "excel",
+            title = "Export data to Excel",
+            icon = Icons.Default.ImportExport,
+            contentDescription = "Go to export data screen",
+        )
+    )
+    if (FirebaseAuth.getInstance().currentUser!!.uid == Admin_Uid) {
+        drawerItems.add(
+            MenuItem(
+                id = "admin",
+                title = "Admin",
+                icon = Icons.Default.AdminPanelSettings,
+                contentDescription = "Admin access this feature"
+            )
+        )
+    }
+    drawerItems.add(
+        MenuItem(
+            id = "logout",
+            title = "Log out",
+            icon = Icons.Default.Logout,
+            contentDescription = "Log out from account",
+        )
+    )
+
+
     val state = viewModel.state
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
+    val fabHeight = 72.dp
+    val fabHeightPx = with(LocalDensity.current) {
+        fabHeight.roundToPx().toFloat()
+    }
+    val fabOffsetHeightPx = remember {
+        mutableStateOf(0f)
+    }
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                val delta = available.y
+                val newOffset = fabOffsetHeightPx.value + delta
+                fabOffsetHeightPx.value = newOffset.coerceIn(-fabHeightPx, 0f)
+                return Offset.Zero
+            }
+        }
+    }
     Scaffold(
+        modifier = Modifier
+            .nestedScroll(nestedScrollConnection),
         floatingActionButton = {
             FloatingActionButton(
+                modifier = Modifier
+                    .offset { IntOffset(x = 0, y = -fabOffsetHeightPx.value.roundToInt()) },
                 onClick = {
-                    navigator.navigate(AddEditArticleScreenDestination())
+                    navigator.navigate(AddEditArticleScreenDestination()) {
+//                        popUpTo("/ArticleScreen"){ inclusive = true}
+                    }
                 },
                 backgroundColor = MaterialTheme.colors.secondary
             ) {
@@ -68,24 +133,7 @@ fun ArticlesScreen(
 
         drawerContent = {
             DrawerBody(
-                items = listOf(
-                    MenuItem(
-                        id = "excel",
-                        title = "Import data to Excel",
-                        icon = Icons.Default.ImportExport,
-                        contentDescription = "Go to import data screen",
-                    ), MenuItem(
-                        id = "settings",
-                        title = "Settings",
-                        icon = Icons.Default.Settings,
-                        contentDescription = "Go to settings screen",
-                    ), MenuItem(
-                        id = "help",
-                        title = "Help",
-                        icon = Icons.Default.Info,
-                        contentDescription = "Get help",
-                    )
-                ),
+                items = drawerItems,
                 onItemClick = {
                     when (it.id) {
                         "excel" -> {
@@ -94,11 +142,25 @@ fun ArticlesScreen(
                             }
                             navigator.navigate(ExportArticleToExcelDestination())
                         }
+                        "logout" -> {
+                            scope.launch {
+                                scaffoldState.drawerState.close()
+                            }
+                            CoroutineScope(Dispatchers.IO).launch {
+                                try {
+                                    FirebaseAuth.getInstance().signOut()
+                                    delay(500L)
+                                    withContext(Dispatchers.Main) {
+                                        navigator.navigateUp()
+                                    }
+                                } catch (e: Exception) {
+
+                                }
+                            }
+                        }
                     }
-                    println("Clicked on ${it.title}")
                 }
             )
-
         }
     ) {
         Column(

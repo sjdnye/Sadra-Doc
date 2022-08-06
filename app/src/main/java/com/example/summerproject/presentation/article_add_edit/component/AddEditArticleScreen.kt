@@ -25,6 +25,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.summerproject.data.local.Article
 import com.example.summerproject.presentation.article_add_edit.AddEditArticleEvent
 import com.example.summerproject.presentation.article_add_edit.AddEditArticleViewModel
+import com.example.summerproject.presentation.destinations.AddEditArticleScreenDestination
 import com.example.summerproject.ui.theme.BlueGray300
 import com.example.summerproject.ui.theme.BlueGray700
 import com.example.summerproject.ui.theme.LightBlue700

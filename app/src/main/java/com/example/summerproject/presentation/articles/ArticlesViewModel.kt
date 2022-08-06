@@ -9,7 +9,10 @@ import com.example.summerproject.data.local.Article
 import com.example.summerproject.domain.use_case.ArticleUseCase
 import com.example.summerproject.domain.utils.ArticleOrder
 import com.example.summerproject.domain.utils.OrderType
+import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -18,7 +21,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ArticlesViewModel @Inject constructor(
-    private val articleUseCase: ArticleUseCase
+    private val articleUseCase: ArticleUseCase,
+    private val auth: FirebaseAuth
 ) : ViewModel() {
 
     var state by mutableStateOf(ArticleState())
@@ -67,6 +71,11 @@ class ArticlesViewModel @Inject constructor(
             is ArticleEvent.ToggleOrderSection -> {
                 state = state.copy(isOrderSectionVisible = !state.isOrderSectionVisible)
             }
+//            is ArticleEvent.LogOut -> {
+//                CoroutineScope(Dispatchers.IO).launch {
+//                    auth.signOut()
+//                }
+//            }
         }
     }
 

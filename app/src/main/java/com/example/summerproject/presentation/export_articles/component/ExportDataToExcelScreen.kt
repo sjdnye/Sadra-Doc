@@ -1,5 +1,6 @@
 package com.example.summerproject.presentation.export_articles.component
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -81,7 +82,7 @@ fun ExportArticleToExcel(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text = "Import articles", color = MaterialTheme.colors.primary)
+                    Text(text = "Export articles", color = MaterialTheme.colors.primary)
                 },
                 backgroundColor = MaterialTheme.colors.background,
                 navigationIcon = {
@@ -130,9 +131,8 @@ fun ExportArticleToExcel(
 
             ButtonGradiant(
                 modifier = Modifier
-                    .align(CenterHorizontally)
-                    .clip(CircleShape),
-                text = "Import to excel file",
+                    .align(CenterHorizontally),
+                text = "Export to excel file",
                 textColor = MaterialTheme.colors.onPrimary,
                 gradiant = Brush.horizontalGradient(
                     colors = listOf(
@@ -215,18 +215,18 @@ fun ButtonGradiant(
 ) {
 
     Button(
+        modifier = modifier,
         colors = ButtonDefaults.buttonColors(
             backgroundColor = Color.Transparent
         ),
         contentPadding = PaddingValues(),
         onClick = { onCLick() },
-        modifier = modifier,
-        elevation = null
+        elevation = null,
+        shape = CircleShape
     ) {
         Box(
             modifier = Modifier
                 .background(gradiant)
-                .clip(CircleShape)
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             Text(text = text, color = textColor)

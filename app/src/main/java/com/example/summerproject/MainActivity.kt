@@ -19,6 +19,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import com.example.summerproject.presentation.NavGraphs
 import com.example.summerproject.ui.theme.SummerProjectTheme
+import com.google.firebase.auth.FirebaseAuth
 import com.ramcosta.composedestinations.DestinationsNavHost
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -31,7 +32,7 @@ class MainActivity : ComponentActivity() {
 
         if (SDK_INT >= Build.VERSION_CODES.R) {
             if (Environment.isExternalStorageManager()) {
-
+                null
             } else { //request for the permission
                 permissionLauncher = registerForActivityResult(
                     ActivityResultContracts.RequestMultiplePermissions()
@@ -77,10 +78,12 @@ class MainActivity : ComponentActivity() {
 
 
         }
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)){ view, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, insets ->
             val bottom = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
             view.updatePadding(bottom = bottom)
             insets
         }
+
     }
+
 }

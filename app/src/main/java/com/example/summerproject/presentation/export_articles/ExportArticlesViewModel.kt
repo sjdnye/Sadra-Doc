@@ -43,7 +43,7 @@ class ExportArticlesViewModel @Inject constructor(
         if (isAccessGranted()) {
             if (numberOfArticles == 0) {
                 viewModelScope.launch {
-                    _eventFlow.emit(UiEvent.ShowSnackBar("There is nothing to import!!"))
+                    _eventFlow.emit(UiEvent.ShowSnackBar("There is nothing to export!!"))
                 }
             } else {
                 createX1File()
@@ -205,7 +205,7 @@ class ExportArticlesViewModel @Inject constructor(
             sheet.setColumnWidth(11, 20 * 200)
             sheet.setColumnWidth(12, 10 * 200)
         }
-        val folderName = "Import Excel"
+        val folderName = "Export Excel"
         val fileName = "${folderName}${System.currentTimeMillis()}.xls"
 
 
@@ -226,7 +226,7 @@ class ExportArticlesViewModel @Inject constructor(
             outputStream.close()
 
             viewModelScope.launch {
-                _eventFlow.emit(UiEvent.ShowSnackBar("Excel file was created in \"/storage/emulated/0/Import Excel/\" successfully!"))
+                _eventFlow.emit(UiEvent.ShowSnackBar("Excel file was created in \"/storage/emulated/0/Export Excel/\" successfully!"))
             }
 
         } catch (e: Exception) {
