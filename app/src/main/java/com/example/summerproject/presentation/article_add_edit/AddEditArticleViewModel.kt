@@ -8,10 +8,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.summerproject.data.local.Article
 import com.example.summerproject.domain.use_case.ArticleUseCase
+import com.example.summerproject.utils.ConnectivityObserver
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -19,9 +21,11 @@ import javax.inject.Inject
 class AddEditArticleViewModel @Inject constructor(
     private val articleUseCase: ArticleUseCase,
     private val fireStore: FirebaseFirestore,
+    private val connectivityObserver: ConnectivityObserver,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
+    private var connectionStatus by mutableStateOf<ConnectivityObserver.Status>(ConnectivityObserver.Status.Unavailable)
 
     private var currentArticleId: Int? = null
 
@@ -36,6 +40,9 @@ class AddEditArticleViewModel @Inject constructor(
     val eventFlow = _eventFlow.asSharedFlow()
 
     init {
+        viewModelScope.launch {
+            checkInternetConnection()
+        }
         savedStateHandle.get<Article>("article")?.let { article ->
             currentArticleId = article.id
             state = state.copy(author_name_1 = article.authorName_1)
@@ -58,6 +65,12 @@ class AddEditArticleViewModel @Inject constructor(
             state = state.copy(articleTitle = article.articleTitle)
             state = state.copy(articleType = article.articleType)
             state = state.copy(fireStoreId = article.fireStoreId)
+        }
+    }
+
+    private suspend fun checkInternetConnection() {
+        connectivityObserver.observe().collectLatest { status ->
+            connectionStatus = status
         }
     }
 
@@ -122,7 +135,13 @@ class AddEditArticleViewModel @Inject constructor(
                 state = state.copy(year = event.Number)
             }
             is AddEditArticleEvent.SaveArticle -> {
-                if (state.persianTitle.isBlank() or state.englishTitle.isBlank()
+                if (connectionStatus != ConnectivityObserver.Status.Available){
+                    viewModelScope.launch {
+                        _eventFlow.emit(UiEvent.ShowSnackBar("No internet connection"))
+                        return@launch
+                    }
+                }
+                else if (state.persianTitle.isBlank() or state.englishTitle.isBlank()
                     or state.author_name_1.isBlank() or state.author_family_1.isBlank()
                     or state.articleTitle.isBlank() or state.articleType.isBlank()
                     or state.institute.isBlank()

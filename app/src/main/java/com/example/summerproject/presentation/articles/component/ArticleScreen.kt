@@ -49,7 +49,7 @@ fun ArticlesScreen(
     viewModel: ArticlesViewModel = hiltViewModel()
 ) {
 
-    var drawerItems = mutableListOf<MenuItem>(
+    val drawerItems = mutableListOf<MenuItem>(
         MenuItem(
             id = "excel",
             title = "Export data to Excel",
@@ -162,6 +162,12 @@ fun ArticlesScreen(
                             }
                             navigator.navigate(ExportArticleToExcelDestination())
                         }
+                        "admin" -> {
+                            scope.launch {
+                                scaffoldState.drawerState.close()
+                            }
+                            navigator.navigate(AdminExportArticlesToExcelDestination())
+                        }
                         "logout" -> {
                             scope.launch {
                                 scaffoldState.drawerState.close()
@@ -174,7 +180,9 @@ fun ArticlesScreen(
                                         navigator.navigateUp()
                                     }
                                 } catch (e: Exception) {
-
+                                    scaffoldState.snackbarHostState.showSnackbar(
+                                        message = e.message.toString()
+                                    )
                                 }
                             }
                         }

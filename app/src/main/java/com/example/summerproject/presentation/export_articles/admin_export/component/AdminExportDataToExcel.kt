@@ -1,12 +1,9 @@
-package com.example.summerproject.presentation.export_articles.component
+package com.example.summerproject.presentation.export_articles.admin_export.component
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -15,9 +12,10 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
+import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -31,9 +29,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.summerproject.presentation.export_articles.ExportArticlesViewModel
-import com.example.summerproject.presentation.export_articles.UiEvent
-import com.example.summerproject.ui.theme.*
+import com.example.summerproject.presentation.export_articles.admin_export.AdminExportDataViewModel
+import com.example.summerproject.ui.theme.LightBlue300
+import com.example.summerproject.ui.theme.LightBlue700
+import com.example.summerproject.ui.theme.LightBlue800
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.flow.collectLatest
@@ -41,9 +40,9 @@ import kotlinx.coroutines.launch
 
 @Destination
 @Composable
-fun ExportArticleToExcel(
+fun AdminExportArticlesToExcel(
     navigator: DestinationsNavigator,
-    viewModel: ExportArticlesViewModel = hiltViewModel()
+    viewModel: AdminExportDataViewModel = hiltViewModel()
 ) {
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
@@ -54,12 +53,13 @@ fun ExportArticleToExcel(
     LaunchedEffect(key1 = true) {
         viewModel.eventFlow.collectLatest { event ->
             when (event) {
-                is UiEvent.ShowSnackBar -> {
+                is AdminExportDataViewModel.AdminUiEvent.ShowSnackBar -> {
                     scope.launch {
                         scaffoldState.snackbarHostState.showSnackbar(
                             message = event.message,
                         )
                     }
+
                 }
             }
         }
@@ -81,7 +81,7 @@ fun ExportArticleToExcel(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text = "Export articles", color = MaterialTheme.colors.primary)
+                    Text(text = "Export articles by admin", color = MaterialTheme.colors.primary)
                 },
                 backgroundColor = MaterialTheme.colors.background,
                 navigationIcon = {
@@ -98,51 +98,74 @@ fun ExportArticleToExcel(
             )
         }
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(30.dp)
-        ) {
-            Text(text = "Select a specific year:",
-                style = MaterialTheme.typography.body2
-          )
-            Spacer(modifier = Modifier.height(5.dp))
-            DropDownMenuYear(exportData = {
-                selectedYear = it
-                viewModel.getArticlesByYear(selectedYear)
-            })
 
-            Spacer(modifier = Modifier.height(50.dp))
-
-            Text(
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Center) {
+            if (viewModel.isLoading) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            }
+            Column(
                 modifier = Modifier
-                    .align(CenterHorizontally),
-                text = "${viewModel.numberOfArticles} article(s) was found",
-                textAlign = TextAlign.Center,
-                style = TextStyle(
-                    fontSize = 30.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = LightBlue700
+                    .fillMaxSize()
+                    .padding(30.dp)
+            ) {
+                Text(
+                    text = "Select a specific year:",
+                    style = MaterialTheme.typography.body2
                 )
-            )
+                Spacer(modifier = Modifier.height(5.dp))
+                DropDownMenuYear(exportData = {
+                    selectedYear = it
+                    viewModel.getArticlesByYear(selectedYear)
+                })
 
-            Spacer(modifier = Modifier.height(30.dp))
+                Spacer(modifier = Modifier.height(50.dp))
 
-            ButtonGradiant(
-                modifier = Modifier
-                    .align(CenterHorizontally),
-                text = "Export to excel file",
-                textColor = MaterialTheme.colors.onPrimary,
-                gradiant = Brush.horizontalGradient(
-                    colors = listOf(
-                        LightBlue800,
-                        LightBlue300
+                Text(
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally),
+                    text = "${viewModel.numberOfArticles} article(s) was found",
+                    textAlign = TextAlign.Center,
+                    style = TextStyle(
+                        fontSize = 30.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = LightBlue700
                     )
-                ),
-                onCLick = {
-                    viewModel.exportArticlesToExcel()
-                }
-            )
+                )
+
+                Spacer(modifier = Modifier.height(30.dp))
+
+                ButtonGradiant(
+                    modifier = Modifier.align(CenterHorizontally),
+                    text = "Export to excel file",
+                    textColor = MaterialTheme.colors.onPrimary,
+                    gradiant = Brush.horizontalGradient(
+                        colors = listOf(
+                            LightBlue800,
+                            LightBlue300
+                        )
+                    ),
+                    onCLick = {
+                        viewModel.exportArticlesToExcel()
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(30.dp))
+                ButtonGradiant(
+                    modifier = Modifier.align(CenterHorizontally),
+                    text = "Export All data to excel file",
+                    textColor = MaterialTheme.colors.onPrimary,
+                    gradiant = Brush.horizontalGradient(
+                        colors = listOf(
+                            LightBlue800,
+                            LightBlue300
+                        )
+                    ),
+                    onCLick = {
+                        viewModel.getAllArticles()
+                    }
+                )
+            }
+
         }
     }
 }

@@ -10,6 +10,7 @@ import com.example.summerproject.domain.use_case.ArticleUseCase
 import com.example.summerproject.domain.utils.ArticleOrder
 import com.example.summerproject.domain.utils.OrderType
 import com.example.summerproject.presentation.article_add_edit.AddEditArticleViewModel
+import com.example.summerproject.utils.ConnectivityObserver
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,9 +24,11 @@ import javax.inject.Inject
 @HiltViewModel
 class ArticlesViewModel @Inject constructor(
     private val articleUseCase: ArticleUseCase,
-    private val auth: FirebaseAuth,
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
+    private val connectivityObserver: ConnectivityObserver
 ) : ViewModel() {
+
+    private var connectionStatus by mutableStateOf<ConnectivityObserver.Status>(ConnectivityObserver.Status.Unavailable)
 
     var state by mutableStateOf(ArticleState())
         private set
@@ -35,20 +38,27 @@ class ArticlesViewModel @Inject constructor(
     private var getArticlesJob: Job? = null
 
     var isLoading by mutableStateOf(false)
-    private set
+        private set
 
     private val _eventFlow = MutableSharedFlow<ArticleScreenUi>()
     val eventFlow = _eventFlow.asSharedFlow()
 
 
     init {
+        viewModelScope.launch {
+            checkInternetConnection()
+        }
         getArticles(state.searchQuery, ArticleOrder.Date(OrderType.Ascending))
+    }
+    private suspend fun checkInternetConnection() {
+        connectivityObserver.observe().collectLatest { status ->
+            connectionStatus = status
+        }
     }
 
 
-
-    fun onEvent(event: ArticleEvent){
-        when(event){
+    fun onEvent(event: ArticleEvent) {
+        when (event) {
             is ArticleEvent.Order -> {
                 if (state.articleOrder::class == event.articleOrder::class &&
                     state.articleOrder.orderType == event.articleOrder.orderType
@@ -56,10 +66,17 @@ class ArticlesViewModel @Inject constructor(
                     return
                 }
                 state = state.copy(articleOrder = event.articleOrder)
-                getArticles(state.searchQuery,state.articleOrder)
+                getArticles(state.searchQuery, state.articleOrder)
             }
             is ArticleEvent.DeleteNote -> {
-                deleteArticleFromFireStore(event.article)
+                if (connectionStatus != ConnectivityObserver.Status.Available){
+                    viewModelScope.launch {
+                        _eventFlow.emit(ArticleScreenUi.ShowMessage("No internet connection"))
+                        return@launch
+                    }
+                }else{
+                    deleteArticleFromFireStore(event.article)
+                }
             }
             is ArticleEvent.SearchArticle -> {
                 state = state.copy(searchQuery = event.query)
@@ -67,7 +84,14 @@ class ArticlesViewModel @Inject constructor(
             }
 
             is ArticleEvent.RestoreNote -> {
-                restoreArticleToFireStore()
+                if (connectionStatus != ConnectivityObserver.Status.Available) {
+                    viewModelScope.launch {
+                        _eventFlow.emit(ArticleScreenUi.ShowMessage("No internet connection"))
+                        return@launch
+                    }
+                }else{
+                    restoreArticleToFireStore()
+                }
             }
             is ArticleEvent.ToggleOrderSection -> {
                 state = state.copy(isOrderSectionVisible = !state.isOrderSectionVisible)
@@ -78,47 +102,49 @@ class ArticlesViewModel @Inject constructor(
     }
 
     private fun restoreArticleToFireStore() {
-     recentlyArticleDeleted?.let {
-         isLoading = true
-         firestore.collection("articles").document(recentlyArticleDeleted!!.fireStoreId!!).set(recentlyArticleDeleted!!).addOnCompleteListener {
-             if (it.isSuccessful && it.isComplete){
-                 viewModelScope.launch {
-                     articleUseCase.insertArticleUseCase(recentlyArticleDeleted?: return@launch)
-                     recentlyArticleDeleted = null
-                 }
-             }else{
-                 viewModelScope.launch {
-                     _eventFlow.emit(ArticleScreenUi.ShowMessage(it.exception.toString()))
-                 }
-             }
-             isLoading = false
-         }
-     }
+        recentlyArticleDeleted?.let {
+            isLoading = true
+            firestore.collection("articles").document(recentlyArticleDeleted!!.fireStoreId!!)
+                .set(recentlyArticleDeleted!!).addOnCompleteListener {
+                if (it.isSuccessful && it.isComplete) {
+                    viewModelScope.launch {
+                        articleUseCase.insertArticleUseCase(recentlyArticleDeleted ?: return@launch)
+                        recentlyArticleDeleted = null
+                    }
+                } else {
+                    viewModelScope.launch {
+                        _eventFlow.emit(ArticleScreenUi.ShowMessage(it.exception.toString()))
+                    }
+                }
+                isLoading = false
+            }
+        }
     }
 
     private fun deleteArticleFromFireStore(article: Article) {
         isLoading = true
-        firestore.collection("articles").document(article.fireStoreId!!).delete().addOnCompleteListener {
-            if (it.isComplete && it.isSuccessful){
-                viewModelScope.launch {
-                    articleUseCase.deleteArticleUseCase(article)
-                    recentlyArticleDeleted = article
-                    _eventFlow.emit(ArticleScreenUi.DeleteArticleCompleted)
+        firestore.collection("articles").document(article.fireStoreId!!).delete()
+            .addOnCompleteListener {
+                if (it.isComplete && it.isSuccessful) {
+                    viewModelScope.launch {
+                        articleUseCase.deleteArticleUseCase(article)
+                        recentlyArticleDeleted = article
+                        _eventFlow.emit(ArticleScreenUi.DeleteArticleCompleted)
+                    }
+                } else {
+                    viewModelScope.launch {
+                        _eventFlow.emit(ArticleScreenUi.ShowMessage(it.exception.toString()))
+                    }
                 }
-            }else {
-                viewModelScope.launch {
-                    _eventFlow.emit(ArticleScreenUi.ShowMessage(it.exception.toString()))
-                }
+                isLoading = false
             }
-            isLoading = false
-        }
 
     }
 
 
-    private fun getArticles(query: String = state.searchQuery, articleOrder: ArticleOrder){
+    private fun getArticles(query: String = state.searchQuery, articleOrder: ArticleOrder) {
         getArticlesJob?.cancel()
-        getArticlesJob = articleUseCase.getArticlesUseCase(query, articleOrder).onEach{ articles ->
+        getArticlesJob = articleUseCase.getArticlesUseCase(query, articleOrder).onEach { articles ->
             state = state.copy(
                 articles = articles,
                 articleOrder = articleOrder
@@ -127,9 +153,9 @@ class ArticlesViewModel @Inject constructor(
             .launchIn(viewModelScope)
     }
 
-    sealed class ArticleScreenUi(){
+    sealed class ArticleScreenUi() {
         object DeleteArticleCompleted : ArticleScreenUi()
-        data class ShowMessage(val message : String) : ArticleScreenUi()
+        data class ShowMessage(val message: String) : ArticleScreenUi()
     }
 
 }

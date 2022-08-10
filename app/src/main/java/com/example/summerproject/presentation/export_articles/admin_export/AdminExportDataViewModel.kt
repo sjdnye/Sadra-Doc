@@ -1,9 +1,8 @@
-package com.example.summerproject.presentation.export_articles
+package com.example.summerproject.presentation.export_articles.admin_export
 
 import android.Manifest
 import android.app.Application
 import android.content.pm.PackageManager
-import android.os.Environment
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -11,47 +10,63 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.summerproject.data.local.Article
-import com.example.summerproject.domain.repository.ArticleRepository
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.toObject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import org.apache.poi.hssf.usermodel.HSSFWorkbook
 import org.apache.poi.ss.usermodel.Cell
 import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.ss.usermodel.Sheet
 import org.apache.poi.ss.usermodel.Workbook
-import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.File
 import java.io.FileOutputStream
 import javax.inject.Inject
 
-
 @HiltViewModel
-class ExportArticlesViewModel @Inject constructor(
-    private val repository: ArticleRepository,
+class AdminExportDataViewModel @Inject constructor(
+    private val firestore: FirebaseFirestore,
     private val application: Application
 ) : ViewModel() {
 
     var numberOfArticles by mutableStateOf<Int>(0)
     var articles by mutableStateOf<List<Article>?>(null)
+    var isLoading by mutableStateOf(false)
+        private set
 
-    private val _eventFlow = MutableSharedFlow<UiEvent>()
+    private val _eventFlow = MutableSharedFlow<AdminUiEvent>()
     val eventFlow = _eventFlow.asSharedFlow()
 
-    fun exportArticlesToExcel() {
+    private var job: Job? = null
+
+
+    fun exportArticlesToExcel(getAll: Boolean = false, allArticles: List<Article> = emptyList()) {
         if (isAccessGranted()) {
+            if (getAll) {
+                if (allArticles.isNotEmpty()) {
+                    createAdminX1File(getAll, allArticles)
+                    return
+                } else {
+                    viewModelScope.launch {
+                        _eventFlow.emit(AdminUiEvent.ShowSnackBar("There is nothing to export!!"))
+                    }
+                }
+
+            }
             if (numberOfArticles == 0) {
                 viewModelScope.launch {
-                    _eventFlow.emit(UiEvent.ShowSnackBar("There is nothing to export!!"))
+                    _eventFlow.emit(AdminUiEvent.ShowSnackBar("There is nothing to export!!"))
                 }
             } else {
-                createX1File()
+                createAdminX1File(getAll, allArticles)
             }
 
         } else {
             viewModelScope.launch {
-                _eventFlow.emit(UiEvent.ShowSnackBar("Please grant read/write storage permission"))
+                _eventFlow.emit(AdminUiEvent.ShowSnackBar("Please grant read/write storage permission"))
             }
 
         }
@@ -59,39 +74,60 @@ class ExportArticlesViewModel @Inject constructor(
     }
 
     fun getArticlesByYear(year: String) {
-        viewModelScope.launch {
-            articles = repository.getArticlesByYear(year)
-            numberOfArticles = if (articles != null) {
-                articles!!.size
-            } else {
-                0
+        job?.cancel()
+        job = CoroutineScope(Dispatchers.IO).launch {
+            delay(500L)
+            isLoading = true
+            try {
+                val tempArticles = mutableListOf<Article>()
+                val querySnapshot = firestore.collection("articles")
+                    .whereEqualTo("year", year)
+                    .get()
+                    .await()
+                for (document in querySnapshot.documents) {
+                    document.toObject<Article>()?.let { tempArticles.add(it) }
+                }
+                articles = tempArticles
+                numberOfArticles = if (articles != null) {
+                    articles!!.size
+                } else {
+                    0
+                }
+            } catch (e: Exception) {
+                _eventFlow.emit(AdminUiEvent.ShowSnackBar(e.message.toString()))
             }
-
+            isLoading = false
         }
     }
 
-    private fun isAccessGranted(): Boolean {
-        val hasAccessWriteStoragePermission = ContextCompat.checkSelfPermission(
-            application,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-        ) == PackageManager.PERMISSION_GRANTED
-        val hasAccessReadStoragePermission = ContextCompat.checkSelfPermission(
-            application,
-            Manifest.permission.READ_EXTERNAL_STORAGE
-        ) == PackageManager.PERMISSION_GRANTED
+    fun getAllArticles() {
 
-
-        if (!hasAccessReadStoragePermission || !hasAccessWriteStoragePermission) {
-            return false
+        CoroutineScope(Dispatchers.IO).launch {
+            isLoading = true
+            try {
+                val tempArticles = mutableListOf<Article>()
+                val querySnapshot = firestore.collection("articles")
+                    .get()
+                    .await()
+                for (document in querySnapshot.documents) {
+                    document.toObject<Article>()?.let { tempArticles.add(it) }
+                }
+                viewModelScope.launch {
+                    exportArticlesToExcel(getAll = true, allArticles = tempArticles)
+                }
+            } catch (e: Exception) {
+                _eventFlow.emit(AdminUiEvent.ShowSnackBar("Error : " + e.message.toString()))
+            }
+            isLoading = false
         }
-        return true
     }
 
-    private fun createX1File() {
+    private fun createAdminX1File(getAll: Boolean, allArticles: List<Article>) {
         val wb: Workbook = HSSFWorkbook()
         var cell: Cell?
         val sheet: Sheet = wb.createSheet("Articles Excel Sheet")
 
+        val excelArticle: List<Article>
 
         //Now column and row
         val row: Row = sheet.createRow(0)
@@ -148,8 +184,14 @@ class ExportArticlesViewModel @Inject constructor(
         sheet.setColumnWidth(11, 20 * 200)
         sheet.setColumnWidth(12, 10 * 200)
 
+        excelArticle = if (getAll) {
+            allArticles
+        } else {
+            articles!!
+        }
 
-        for (i in 0 until articles!!.size) {
+
+        for (i in 0 until excelArticle.size) {
             val row1: Row = sheet.createRow(i + 1)
             cell = row1.createCell(0)
             cell.setCellValue(articles!![i].authorName_1)
@@ -206,18 +248,19 @@ class ExportArticlesViewModel @Inject constructor(
             sheet.setColumnWidth(11, 20 * 200)
             sheet.setColumnWidth(12, 10 * 200)
         }
-        val folderName = "Export Excel"
+        val folderName = "Export Excel(Admin)"
         val fileName = "${folderName}${System.currentTimeMillis()}.xls"
 
 
         try {
 
-            val file = File("/storage/emulated/0/${File.separator}${folderName}${File.separator}${fileName}")
+            val file =
+                File("/storage/emulated/0/${File.separator}${folderName}${File.separator}${fileName}")
             val folder = File("/storage/emulated/0/${File.separator}${folderName}")
-            if (!folder.exists()){
+            if (!folder.exists()) {
                 folder.mkdir()
             }
-            if (!file.exists()){
+            if (!file.exists()) {
                 file.createNewFile()
             }
             val outputStream = FileOutputStream(file)
@@ -227,18 +270,34 @@ class ExportArticlesViewModel @Inject constructor(
             outputStream.close()
 
             viewModelScope.launch {
-                _eventFlow.emit(UiEvent.ShowSnackBar("Excel file was created in \"/storage/emulated/0/Export Excel/\" successfully!"))
+                _eventFlow.emit(AdminUiEvent.ShowSnackBar("Excel file was created in \"/storage/emulated/0/Export Excel(Admin)/\" successfully!"))
             }
 
         } catch (e: Exception) {
             viewModelScope.launch {
-                _eventFlow.emit(UiEvent.ShowSnackBar("An error occurred : ${e.message.toString()}"))
+                _eventFlow.emit(AdminUiEvent.ShowSnackBar("An error occurred : ${e.message.toString()}"))
             }
         }
     }
-}
 
-sealed class UiEvent {
-    data class ShowSnackBar(val message: String) : UiEvent()
-}
+    private fun isAccessGranted(): Boolean {
+        val hasAccessWriteStoragePermission = ContextCompat.checkSelfPermission(
+            application,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+        ) == PackageManager.PERMISSION_GRANTED
+        val hasAccessReadStoragePermission = ContextCompat.checkSelfPermission(
+            application,
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        ) == PackageManager.PERMISSION_GRANTED
 
+
+        if (!hasAccessReadStoragePermission || !hasAccessWriteStoragePermission) {
+            return false
+        }
+        return true
+    }
+
+    sealed class AdminUiEvent {
+        data class ShowSnackBar(val message: String) : AdminUiEvent()
+    }
+}

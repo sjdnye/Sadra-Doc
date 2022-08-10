@@ -11,8 +11,8 @@ import kotlinx.parcelize.Parcelize
 data class Article(
     @PrimaryKey
     val id: Int? = null,
-    val authorName_1: String,
-    val authorFamily_1: String,
+    val authorName_1: String = "",
+    val authorFamily_1: String = "",
     val authorAffiliation_1: String = "",
     val authorName_2: String = "",
     val authorFamily_2: String = "",
@@ -22,18 +22,20 @@ data class Article(
     val authorAffiliation_3: String = "",
     val articleType: String = "",
     val articleTitle: String = "",
-    val persianTitle: String,
-    val englishTitle: String,
-    val placeOfPrinting: String,
-    val year: String,
-    val articleAddTimeToDatabase: Long,
+    val persianTitle: String = "",
+    val englishTitle: String = "",
+    val placeOfPrinting: String = "",
+    val year: String = "",
+    val articleAddTimeToDatabase: Long = 0,
     val vol: String = "",
     val No: String = "",
     val institute: String = "",
-    val content: String,
+    val content: String = "",
     @get:Exclude
     var fireStoreId:String? = null
-): Parcelable
+): Parcelable{
+
+}
 
 
 class InvalidInputException(error: String): Exception(error)

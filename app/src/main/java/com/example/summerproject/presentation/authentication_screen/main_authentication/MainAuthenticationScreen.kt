@@ -16,6 +16,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
+import androidx.compose.ui.Alignment.Companion.TopCenter
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -43,7 +44,7 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-@Destination(start = true, route = "/MainAuthenticationScreen")
+@Destination(route = "/MainAuthenticationScreen")
 @Composable
 fun MainAuthenticationScreen(
     navigator: DestinationsNavigator,
@@ -51,11 +52,6 @@ fun MainAuthenticationScreen(
     auth: FirebaseAuth = FirebaseAuth.getInstance()
 ) {
 
-    if (auth.currentUser != null) {
-        navigator.navigate(ArticlesScreenDestination()){
-            popUpTo("/MainAuthenticationScreen"){ inclusive = true}
-        }
-    }
 //    LaunchedEffect(key1 = true){
 //        viewModel.mainAuthentication.collectLatest { event ->
 //            when(event){
@@ -75,12 +71,12 @@ fun MainAuthenticationScreen(
             .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-//        Image(
-//            painter = painterResource(id = R.drawable.),
-//            contentDescription = "main background",
-//            contentScale = ContentScale.Crop,
-//            modifier = Modifier.fillMaxSize()
-//        )
+        Image(
+            painter = painterResource(id = R.drawable.itrc_edit),
+            contentDescription = "main background",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.align(alignment = TopCenter).padding(top = 200.dp)
+        )
         Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally

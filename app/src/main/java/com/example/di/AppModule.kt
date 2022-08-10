@@ -7,6 +7,8 @@ import com.example.summerproject.data.local.ArticleDatabase
 import com.example.summerproject.data.repository.ArticleRepositoryImpl
 import com.example.summerproject.domain.repository.ArticleRepository
 import com.example.summerproject.domain.use_case.*
+import com.example.summerproject.utils.ConnectivityObserver
+import com.example.summerproject.utils.NetworkConnectivityObserver
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -48,6 +50,12 @@ object AppModule {
             insertArticleUseCase = InsertArticleUseCase(articleRepository),
             deleteArticleUseCase = DeleteArticleUseCase(articleRepository)
         )
+    }
+
+    @Provides
+    @Singleton
+    fun provideNetworkConnectivityObserver(app: Application) : ConnectivityObserver{
+        return NetworkConnectivityObserver(app)
     }
 
 }
