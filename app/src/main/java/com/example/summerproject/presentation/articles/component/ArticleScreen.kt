@@ -1,5 +1,7 @@
 package com.example.summerproject.presentation.articles.component
 
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,17 +22,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.summerproject.data.local.Article
 import com.example.summerproject.presentation.articles.ArticleEvent
 import com.example.summerproject.presentation.articles.ArticlesViewModel
 import com.example.summerproject.presentation.articles.component.navigationDrawer.DrawerBody
 import com.example.summerproject.presentation.articles.component.navigationDrawer.MenuItem
 import com.example.summerproject.presentation.destinations.*
 import com.example.summerproject.ui.theme.LightBlue800
+import com.example.summerproject.utils.SimpleAlertDialog
 import com.example.utils.Admin_Uid
 import com.google.firebase.auth.FirebaseAuth
 import com.ramcosta.composedestinations.annotation.Destination
@@ -48,33 +53,13 @@ fun ArticlesScreen(
     navigator: DestinationsNavigator,
     viewModel: ArticlesViewModel = hiltViewModel()
 ) {
-
-    val drawerItems = mutableListOf<MenuItem>(
-        MenuItem(
-            id = "excel",
-            title = "Export data to Excel",
-            icon = Icons.Default.ImportExport,
-            contentDescription = "Go to export data screen",
-        )
-    )
-    if (FirebaseAuth.getInstance().currentUser!!.uid == Admin_Uid) {
-        drawerItems.add(
-            MenuItem(
-                id = "admin",
-                title = "Admin",
-                icon = Icons.Default.AdminPanelSettings,
-                contentDescription = "Admin access this feature"
-            )
-        )
+    val context = LocalContext.current
+    var deleteArticle by remember {
+        mutableStateOf<Article?>(null)
     }
-    drawerItems.add(
-        MenuItem(
-            id = "logout",
-            title = "Log out",
-            icon = Icons.Default.Logout,
-            contentDescription = "Log out from account",
-        )
-    )
+
+    val drawerItems = mutableListOf<MenuItem>()
+    createMenuDrawer(drawerItems)
 
 
     val state = viewModel.state
@@ -127,9 +112,7 @@ fun ArticlesScreen(
                 modifier = Modifier
                     .offset { IntOffset(x = 0, y = -fabOffsetHeightPx.value.roundToInt()) },
                 onClick = {
-                    navigator.navigate(AddEditArticleScreenDestination()) {
-//                        popUpTo("/ArticleScreen"){ inclusive = true}
-                    }
+                    navigator.navigate(AddEditArticleScreenDestination())
                 },
                 backgroundColor = MaterialTheme.colors.secondary
             ) {
@@ -192,8 +175,26 @@ fun ArticlesScreen(
         }
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            if (viewModel.isLoading){
+            if (viewModel.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            }
+            if (viewModel.showAlertDialog) {
+                SimpleAlertDialog(
+                    modifier = Modifier.align(Alignment.Center),
+                    onDismissRequest = {
+                        viewModel.showAlertDialog = false
+                    },
+                    confirmButton = {
+                        viewModel.showAlertDialog = false
+                        deleteArticle?.let {
+                            viewModel.onEvent(ArticleEvent.DeleteNote(it))
+                        } ?: Toast.makeText(context, "please  try again!", Toast.LENGTH_LONG).show()
+                        deleteArticle = null
+                    },
+                    dismissButton = {
+                        viewModel.showAlertDialog = false
+                    }
+                )
             }
             Column(
                 modifier = Modifier
@@ -291,7 +292,8 @@ fun ArticlesScreen(
                                     navigator.navigate(AddEditArticleScreenDestination(article = article))
                                 },
                             onDeleteClick = {
-                                viewModel.onEvent(ArticleEvent.DeleteNote(article))
+                                viewModel.showAlertDialog = true
+                                deleteArticle = article
                             }
                         )
                         Spacer(modifier = Modifier.height(16.dp))
@@ -301,3 +303,33 @@ fun ArticlesScreen(
         }
     }
 }
+
+fun createMenuDrawer(drawerItems : MutableList<MenuItem>) {
+    drawerItems.add(
+        MenuItem(
+            id = "excel",
+            title = "Export data to Excel",
+            icon = Icons.Default.ImportExport,
+            contentDescription = "Go to export data screen",
+        )
+    )
+    if (FirebaseAuth.getInstance().currentUser!!.uid == Admin_Uid) {
+        drawerItems.add(
+            MenuItem(
+                id = "admin",
+                title = "Admin",
+                icon = Icons.Default.AdminPanelSettings,
+                contentDescription = "Admin access this feature"
+            )
+        )
+    }
+    drawerItems.add(
+        MenuItem(
+            id = "logout",
+            title = "Log out",
+            icon = Icons.Default.Logout,
+            contentDescription = "Log out from account",
+        )
+    )
+}
+

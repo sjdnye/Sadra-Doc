@@ -33,6 +33,8 @@ class ArticlesViewModel @Inject constructor(
     var state by mutableStateOf(ArticleState())
         private set
 
+    var showAlertDialog by mutableStateOf(false)
+
     private var recentlyArticleDeleted: Article? = null
 
     private var getArticlesJob: Job? = null
@@ -50,6 +52,7 @@ class ArticlesViewModel @Inject constructor(
         }
         getArticles(state.searchQuery, ArticleOrder.Date(OrderType.Ascending))
     }
+
     private suspend fun checkInternetConnection() {
         connectivityObserver.observe().collectLatest { status ->
             connectionStatus = status
@@ -69,12 +72,12 @@ class ArticlesViewModel @Inject constructor(
                 getArticles(state.searchQuery, state.articleOrder)
             }
             is ArticleEvent.DeleteNote -> {
-                if (connectionStatus != ConnectivityObserver.Status.Available){
+                if (connectionStatus != ConnectivityObserver.Status.Available) {
                     viewModelScope.launch {
                         _eventFlow.emit(ArticleScreenUi.ShowMessage("No internet connection"))
                         return@launch
                     }
-                }else{
+                } else {
                     deleteArticleFromFireStore(event.article)
                 }
             }
@@ -89,7 +92,7 @@ class ArticlesViewModel @Inject constructor(
                         _eventFlow.emit(ArticleScreenUi.ShowMessage("No internet connection"))
                         return@launch
                     }
-                }else{
+                } else {
                     restoreArticleToFireStore()
                 }
             }
@@ -106,18 +109,20 @@ class ArticlesViewModel @Inject constructor(
             isLoading = true
             firestore.collection("articles").document(recentlyArticleDeleted!!.fireStoreId!!)
                 .set(recentlyArticleDeleted!!).addOnCompleteListener {
-                if (it.isSuccessful && it.isComplete) {
-                    viewModelScope.launch {
-                        articleUseCase.insertArticleUseCase(recentlyArticleDeleted ?: return@launch)
-                        recentlyArticleDeleted = null
+                    if (it.isSuccessful && it.isComplete) {
+                        viewModelScope.launch {
+                            articleUseCase.insertArticleUseCase(
+                                recentlyArticleDeleted ?: return@launch
+                            )
+                            recentlyArticleDeleted = null
+                        }
+                    } else {
+                        viewModelScope.launch {
+                            _eventFlow.emit(ArticleScreenUi.ShowMessage(it.exception.toString()))
+                        }
                     }
-                } else {
-                    viewModelScope.launch {
-                        _eventFlow.emit(ArticleScreenUi.ShowMessage(it.exception.toString()))
-                    }
+                    isLoading = false
                 }
-                isLoading = false
-            }
         }
     }
 
