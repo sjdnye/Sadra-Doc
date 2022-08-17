@@ -33,7 +33,7 @@ class AdminExportDataViewModel @Inject constructor(
 ) : ViewModel() {
 
     var numberOfArticles by mutableStateOf<Int>(0)
-    var articles by mutableStateOf<List<Article>?>(null)
+    var articles by mutableStateOf<List<Article>>(emptyList())
     var isLoading by mutableStateOf(false)
         private set
 
@@ -41,39 +41,30 @@ class AdminExportDataViewModel @Inject constructor(
     val eventFlow = _eventFlow.asSharedFlow()
 
     private var job: Job? = null
+    private var jobAll: Job? = null
+
+    var selectedText by mutableStateOf("")
 
 
-    fun exportArticlesToExcel(getAll: Boolean = false, allArticles: List<Article> = emptyList()) {
+    fun exportArticlesToExcel() {
         if (isAccessGranted()) {
-            if (getAll) {
-                if (allArticles.isNotEmpty()) {
-                    createAdminX1File(getAll, allArticles)
-                    return
-                } else {
-                    viewModelScope.launch {
-                        _eventFlow.emit(AdminUiEvent.ShowSnackBar("There is nothing to export!!"))
-                    }
-                }
-
-            }
             if (numberOfArticles == 0) {
                 viewModelScope.launch {
                     _eventFlow.emit(AdminUiEvent.ShowSnackBar("There is nothing to export!!"))
                 }
             } else {
-                createAdminX1File(getAll, allArticles)
+                createAdminX1File()
             }
-
         } else {
             viewModelScope.launch {
                 _eventFlow.emit(AdminUiEvent.ShowSnackBar("Please grant read/write storage permission"))
             }
-
         }
-
     }
 
+
     fun getArticlesByYear(year: String) {
+        articles = emptyList()
         job?.cancel()
         job = CoroutineScope(Dispatchers.IO).launch {
             delay(500L)
@@ -88,8 +79,8 @@ class AdminExportDataViewModel @Inject constructor(
                     document.toObject<Article>()?.let { tempArticles.add(it) }
                 }
                 articles = tempArticles
-                numberOfArticles = if (articles != null) {
-                    articles!!.size
+                numberOfArticles = if (articles.isNotEmpty()) {
+                    articles.size
                 } else {
                     0
                 }
@@ -101,8 +92,9 @@ class AdminExportDataViewModel @Inject constructor(
     }
 
     fun getAllArticles() {
-
-        CoroutineScope(Dispatchers.IO).launch {
+        articles = emptyList()
+        jobAll?.cancel()
+        jobAll = CoroutineScope(Dispatchers.IO).launch {
             isLoading = true
             try {
                 val tempArticles = mutableListOf<Article>()
@@ -112,8 +104,11 @@ class AdminExportDataViewModel @Inject constructor(
                 for (document in querySnapshot.documents) {
                     document.toObject<Article>()?.let { tempArticles.add(it) }
                 }
-                viewModelScope.launch {
-                    exportArticlesToExcel(getAll = true, allArticles = tempArticles)
+                articles = tempArticles
+                numberOfArticles = if (articles.isNotEmpty()) {
+                    articles.size
+                } else {
+                    0
                 }
             } catch (e: Exception) {
                 _eventFlow.emit(AdminUiEvent.ShowSnackBar("Error : " + e.message.toString()))
@@ -122,12 +117,11 @@ class AdminExportDataViewModel @Inject constructor(
         }
     }
 
-    private fun createAdminX1File(getAll: Boolean, allArticles: List<Article>) {
+    private fun createAdminX1File() {
         val wb: Workbook = HSSFWorkbook()
         var cell: Cell?
         val sheet: Sheet = wb.createSheet("Articles Excel Sheet")
 
-        val excelArticle: List<Article>
 
         //Now column and row
         val row: Row = sheet.createRow(0)
@@ -184,14 +178,9 @@ class AdminExportDataViewModel @Inject constructor(
         sheet.setColumnWidth(11, 20 * 200)
         sheet.setColumnWidth(12, 10 * 200)
 
-        excelArticle = if (getAll) {
-            allArticles
-        } else {
-            articles!!
-        }
 
 
-        for (i in 0 until excelArticle.size) {
+        for (i in 0 until articles!!.size) {
             val row1: Row = sheet.createRow(i + 1)
             cell = row1.createCell(0)
             cell.setCellValue(articles!![i].authorName_1)

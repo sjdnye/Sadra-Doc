@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
+import androidx.compose.ui.Alignment.Companion.Start
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
@@ -30,9 +31,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.summerproject.presentation.export_articles.admin_export.AdminExportDataViewModel
-import com.example.summerproject.ui.theme.LightBlue300
-import com.example.summerproject.ui.theme.LightBlue700
-import com.example.summerproject.ui.theme.LightBlue800
+import com.example.summerproject.ui.theme.*
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.flow.collectLatest
@@ -47,9 +46,7 @@ fun AdminExportArticlesToExcel(
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
 
-    var selectedYear by remember {
-        mutableStateOf<String>("")
-    }
+
     LaunchedEffect(key1 = true) {
         viewModel.eventFlow.collectLatest { event ->
             when (event) {
@@ -108,27 +105,49 @@ fun AdminExportArticlesToExcel(
                     .fillMaxSize()
                     .padding(30.dp)
             ) {
+
                 Text(
                     text = "Select a specific year:",
                     style = MaterialTheme.typography.body2
                 )
+
                 Spacer(modifier = Modifier.height(5.dp))
-                DropDownMenuYear(exportData = {
-                    selectedYear = it
-                    viewModel.getArticlesByYear(selectedYear)
-                })
+                DropDownMenuYear(
+                    selectedText = viewModel.selectedText,
+                    exportData = {
+                        viewModel.selectedText = it
+                        viewModel.getArticlesByYear(it)
+                    }
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+
+                ButtonGradiant(
+                    modifier = Modifier.align(Start),
+                    text = "Or get all articles",
+                    textColor = MaterialTheme.colors.onPrimary,
+                    gradiant = Brush.horizontalGradient(
+                        colors = listOf(
+                            LightBlue800,
+                            LightBlue300
+                        )
+                    ),
+                    onCLick = {
+                        viewModel.selectedText = ""
+                        viewModel.getAllArticles()
+                    }
+                )
 
                 Spacer(modifier = Modifier.height(50.dp))
 
                 Text(
                     modifier = Modifier
-                        .align(Alignment.CenterHorizontally),
+                        .align(CenterHorizontally),
                     text = "${viewModel.numberOfArticles} article(s) was found",
                     textAlign = TextAlign.Center,
                     style = TextStyle(
                         fontSize = 30.sp,
                         fontWeight = FontWeight.Bold,
-                        color = LightBlue700
+                        color = if (!viewModel.isLoading) LightBlue700 else BlueGray500
                     )
                 )
 
@@ -150,20 +169,7 @@ fun AdminExportArticlesToExcel(
                 )
 
                 Spacer(modifier = Modifier.height(30.dp))
-                ButtonGradiant(
-                    modifier = Modifier.align(CenterHorizontally),
-                    text = "Export All data to excel file",
-                    textColor = MaterialTheme.colors.onPrimary,
-                    gradiant = Brush.horizontalGradient(
-                        colors = listOf(
-                            LightBlue800,
-                            LightBlue300
-                        )
-                    ),
-                    onCLick = {
-                        viewModel.getAllArticles()
-                    }
-                )
+
             }
 
         }
@@ -171,15 +177,13 @@ fun AdminExportArticlesToExcel(
 }
 
 @Composable
-fun DropDownMenuYear(exportData: (selectedText: String) -> Unit) {
+fun DropDownMenuYear(selectedText: String, exportData: (selectedText: String) -> Unit) {
 
     var expanded by remember { mutableStateOf(false) }
     val suggestions = mutableListOf<String>()
     for (i in 2030 downTo 1990) {
         suggestions.add(i.toString())
     }
-    var selectedText by remember { mutableStateOf("") }
-
     var textFieldSize by remember { mutableStateOf(Size.Zero) }
 
     val icon = if (expanded)
@@ -192,8 +196,7 @@ fun DropDownMenuYear(exportData: (selectedText: String) -> Unit) {
         OutlinedTextField(
             value = selectedText,
             onValueChange = {
-                selectedText = it
-                exportData(selectedText)
+                exportData(it)
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -215,11 +218,12 @@ fun DropDownMenuYear(exportData: (selectedText: String) -> Unit) {
                 .width(with(LocalDensity.current) { textFieldSize.width.toDp() })
         ) {
             suggestions.forEach { label ->
-                DropdownMenuItem(onClick = {
-                    selectedText = label
-                    expanded = false
-                    exportData(selectedText)
-                }) {
+                DropdownMenuItem(
+                    onClick = {
+                        expanded = false
+                        exportData(label)
+                    }
+                ) {
                     Text(text = label)
                 }
             }

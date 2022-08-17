@@ -1,6 +1,6 @@
 package com.example.summerproject.presentation.articles.component
 
-import android.content.Context
+
 import android.widget.Toast
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
@@ -34,17 +34,13 @@ import com.example.summerproject.presentation.articles.ArticlesViewModel
 import com.example.summerproject.presentation.articles.component.navigationDrawer.DrawerBody
 import com.example.summerproject.presentation.articles.component.navigationDrawer.MenuItem
 import com.example.summerproject.presentation.destinations.*
-import com.example.summerproject.ui.theme.LightBlue800
 import com.example.summerproject.utils.SimpleAlertDialog
 import com.example.utils.Admin_Uid
 import com.google.firebase.auth.FirebaseAuth
 import com.ramcosta.composedestinations.annotation.Destination
-import com.ramcosta.composedestinations.navigation.DestinationsNavController
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import dagger.internal.InjectedFieldSignature
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collectLatest
-import javax.inject.Inject
 import kotlin.math.roundToInt
 
 @Destination(route = "/ArticleScreen")
@@ -183,6 +179,7 @@ fun ArticlesScreen(
                     modifier = Modifier.align(Alignment.Center),
                     onDismissRequest = {
                         viewModel.showAlertDialog = false
+                        deleteArticle = null
                     },
                     confirmButton = {
                         viewModel.showAlertDialog = false
@@ -193,6 +190,7 @@ fun ArticlesScreen(
                     },
                     dismissButton = {
                         viewModel.showAlertDialog = false
+                        deleteArticle = null
                     }
                 )
             }
@@ -332,4 +330,6 @@ fun createMenuDrawer(drawerItems : MutableList<MenuItem>) {
         )
     )
 }
+
+
 
