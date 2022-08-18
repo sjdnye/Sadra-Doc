@@ -91,8 +91,6 @@ class ExportArticlesViewModel @Inject constructor(
         val wb: Workbook = HSSFWorkbook()
         var cell: Cell?
         val sheet: Sheet = wb.createSheet("Articles Excel Sheet")
-
-
         //Now column and row
         val row: Row = sheet.createRow(0)
 

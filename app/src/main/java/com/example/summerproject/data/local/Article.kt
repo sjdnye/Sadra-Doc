@@ -34,7 +34,6 @@ data class Article(
     @get:Exclude
     var fireStoreId:String? = null
 ): Parcelable{
-
 }
 
 

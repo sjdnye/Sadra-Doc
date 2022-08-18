@@ -18,7 +18,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
-
     @Provides
     @Singleton
     fun provideArticleDatabase(app:Application) : ArticleDatabase{
@@ -28,19 +27,16 @@ object AppModule {
             ArticleDatabase.DATABASE_NAME
         ).build()
     }
-
     @Provides
     @Singleton
     fun provideArticleDao(articleDatabase: ArticleDatabase): ArticleDao{
         return articleDatabase.articleDao
     }
-
     @Provides
     @Singleton
     fun provideArticleRepository(dao:ArticleDao): ArticleRepository{
         return ArticleRepositoryImpl(dao)
     }
-
     @Provides
     @Singleton
     fun provideArticleUseCase(articleRepository:ArticleRepository) : ArticleUseCase{
@@ -51,11 +47,9 @@ object AppModule {
             deleteArticleUseCase = DeleteArticleUseCase(articleRepository)
         )
     }
-
     @Provides
     @Singleton
     fun provideNetworkConnectivityObserver(app: Application) : ConnectivityObserver{
         return NetworkConnectivityObserver(app)
     }
-
 }

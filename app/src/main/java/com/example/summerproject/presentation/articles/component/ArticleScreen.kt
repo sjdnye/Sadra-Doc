@@ -1,7 +1,13 @@
 package com.example.summerproject.presentation.articles.component
 
 
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.provider.Settings
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -50,6 +56,18 @@ fun ArticlesScreen(
     viewModel: ArticlesViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+
+//    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
+//        val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+//        val uri = Uri.fromParts(
+//            "package",
+//            context.packageName, null
+//        )
+//        intent.data = uri
+//        context.startActivity(intent)
+//    }
+
+
     var deleteArticle by remember {
         mutableStateOf<Article?>(null)
     }

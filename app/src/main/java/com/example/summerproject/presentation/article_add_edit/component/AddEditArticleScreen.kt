@@ -55,11 +55,8 @@ fun AddEditArticleScreen(
                     scaffoldState.snackbarHostState.showSnackbar(
                         message = event.message
                     )
-
                 }
-
             }
-
         }
     }
     Scaffold(

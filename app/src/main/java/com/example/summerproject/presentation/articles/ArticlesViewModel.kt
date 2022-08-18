@@ -1,5 +1,12 @@
 package com.example.summerproject.presentation.articles
 
+import android.app.Application
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.provider.Settings
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -25,7 +32,7 @@ import javax.inject.Inject
 class ArticlesViewModel @Inject constructor(
     private val articleUseCase: ArticleUseCase,
     private val firestore: FirebaseFirestore,
-    private val connectivityObserver: ConnectivityObserver
+    private val connectivityObserver: ConnectivityObserver,
 ) : ViewModel() {
 
     private var connectionStatus by mutableStateOf<ConnectivityObserver.Status>(ConnectivityObserver.Status.Unavailable)
@@ -47,6 +54,7 @@ class ArticlesViewModel @Inject constructor(
 
 
     init {
+
         viewModelScope.launch {
             checkInternetConnection()
         }
@@ -58,7 +66,6 @@ class ArticlesViewModel @Inject constructor(
             connectionStatus = status
         }
     }
-
 
     fun onEvent(event: ArticleEvent) {
         when (event) {

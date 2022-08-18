@@ -49,7 +49,7 @@ class MainActivity : ComponentActivity() {
 
     }
 
-    fun checkPermissions(){
+    private fun checkPermissions(){
         if (SDK_INT >= Build.VERSION_CODES.R) {
             if (Environment.isExternalStorageManager()) {
                 null
@@ -72,6 +72,7 @@ class MainActivity : ComponentActivity() {
                 )
                 intent.data = uri
                 startActivity(intent)
+
             }
         } else {
             //below android 11=======
