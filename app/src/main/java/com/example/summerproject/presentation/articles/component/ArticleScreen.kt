@@ -189,9 +189,7 @@ fun ArticlesScreen(
         }
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            if (viewModel.isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            }
+
             if (viewModel.showAlertDialog) {
                 SimpleAlertDialog(
                     modifier = Modifier.align(Alignment.Center),
@@ -316,11 +314,14 @@ fun ArticlesScreen(
                     }
                 }
             }
+            if (viewModel.isLoading) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            }
         }
     }
 }
 
-fun createMenuDrawer(drawerItems : MutableList<MenuItem>) {
+fun createMenuDrawer(drawerItems: MutableList<MenuItem>) {
     drawerItems.add(
         MenuItem(
             id = "excel",

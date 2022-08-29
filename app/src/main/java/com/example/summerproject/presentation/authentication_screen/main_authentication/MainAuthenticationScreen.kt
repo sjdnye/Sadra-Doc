@@ -26,6 +26,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.res.ResourcesCompat
@@ -75,11 +76,13 @@ fun MainAuthenticationScreen(
             painter = painterResource(id = R.drawable.itrc_edit),
             contentDescription = "main background",
             contentScale = ContentScale.Crop,
-            modifier = Modifier.align(alignment = TopCenter).padding(top = 200.dp)
+            modifier = Modifier
+                .align(alignment = TopCenter)
+                .padding(top = 200.dp)
         )
         Column(
             verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = CenterHorizontally
         ) {
             Text(
                 text = "ITRC/Articles",
@@ -174,5 +177,5 @@ fun MainAuthenticationScreen(
             }
         }
     }
-
 }
+
