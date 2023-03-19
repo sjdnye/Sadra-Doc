@@ -2,13 +2,12 @@ package com.example.di
 
 import android.app.Application
 import androidx.room.Room
-import com.example.summerproject.data.local.ArticleDao
-import com.example.summerproject.data.local.ArticleDatabase
-import com.example.summerproject.data.repository.ArticleRepositoryImpl
-import com.example.summerproject.domain.repository.ArticleRepository
-import com.example.summerproject.domain.use_case.*
-import com.example.summerproject.utils.ConnectivityObserver
-import com.example.summerproject.utils.NetworkConnectivityObserver
+import com.example.consignmentProject.data.local.*
+import com.example.consignmentProject.data.repository.ConsignmentRepositoryImpl
+import com.example.consignmentProject.domain.repository.ConsignmentRepository
+import com.example.consignmentProject.domain.use_case.*
+import com.example.consignmentProject.utils.ConnectivityObserver
+import com.example.consignmentProject.utils.NetworkConnectivityObserver
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -20,31 +19,31 @@ import javax.inject.Singleton
 object AppModule {
     @Provides
     @Singleton
-    fun provideArticleDatabase(app:Application) : ArticleDatabase{
+    fun provideConsignmentDatabase(app:Application) : ConsignmentDatabase{
         return Room.databaseBuilder(
             app,
-            ArticleDatabase::class.java,
-            ArticleDatabase.DATABASE_NAME
+            ConsignmentDatabase::class.java,
+            ConsignmentDatabase.DATABASE_NAME
         ).build()
     }
     @Provides
     @Singleton
-    fun provideArticleDao(articleDatabase: ArticleDatabase): ArticleDao{
-        return articleDatabase.articleDao
+    fun provideConsignmentDao(consignmentDatabase: ConsignmentDatabase): ConsignmentDao{
+        return consignmentDatabase.consignmentDao
     }
     @Provides
     @Singleton
-    fun provideArticleRepository(dao:ArticleDao): ArticleRepository{
-        return ArticleRepositoryImpl(dao)
+    fun provideConsignmentRepository(dao:ConsignmentDao): ConsignmentRepository{
+        return ConsignmentRepositoryImpl(dao = dao)
     }
     @Provides
     @Singleton
-    fun provideArticleUseCase(articleRepository:ArticleRepository) : ArticleUseCase{
-        return ArticleUseCase(
-            getArticlesUseCase = GetArticlesUseCase(articleRepository),
-            getArticleByIdUseCase = GetArticleByIdUseCase(articleRepository),
-            insertArticleUseCase = InsertArticleUseCase(articleRepository),
-            deleteArticleUseCase = DeleteArticleUseCase(articleRepository)
+    fun provideArticleUseCase(consignmentRepository: ConsignmentRepository) : ConsignmentUseCase{
+        return ConsignmentUseCase(
+            getConsignmentUseCase = GetConsignmentUseCase(consignmentRepository),
+            getConsignmentByIdUseCase = GetConsignmentByIdUseCase(consignmentRepository),
+            insertConsignmentUseCase = InsertConsignmentUseCase(consignmentRepository),
+            deleteConsignmentUseCase = DeleteConsignmentUseCase(consignmentRepository)
         )
     }
     @Provides

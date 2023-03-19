@@ -1,3 +1,4 @@
 package com.example.utils
 
-const val Admin_Uid = "Cc5sEmyb6cS9SfnpAyTdD4VPjHu2"
+const val Admin_Uid = "EWqevIIUfOSViUgAaJhcKrx1WIZ2"
+const val CONSIGNMENT_COLLECTION = "consignments"

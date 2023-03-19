@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.example.summerproject">
+    package="com.example.consignmentProject">
 
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
@@ -11,7 +11,7 @@
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>
 
     <application
-        android:name="com.example.ArticleApplication"
+        android:name="com.example.ConsignmentApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -25,7 +25,7 @@
 
         <activity
             android:windowSoftInputMode="adjustResize"
-            android:name=".MainActivity"
+            android:name="com.example.consignmentProject.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.SummerProject">
