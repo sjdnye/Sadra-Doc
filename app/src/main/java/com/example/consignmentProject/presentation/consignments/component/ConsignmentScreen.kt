@@ -1,6 +1,7 @@
 package com.example.consignmentProject.presentation.consignments.component
 
 
+import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
@@ -33,9 +34,13 @@ import com.example.consignmentProject.presentation.consignments.ConsignmentEvent
 import com.example.consignmentProject.presentation.consignments.ConsignmentViewModel
 import com.example.consignmentProject.presentation.consignments.component.navigationDrawer.DrawerBody
 import com.example.consignmentProject.presentation.consignments.component.navigationDrawer.MenuItem
-import com.example.consignmentProject.presentation.destinations.*
+import com.example.consignmentProject.presentation.destinations.AddEditConsignmentScreenDestination
+import com.example.consignmentProject.presentation.destinations.AdminExportConsignmentsToExcelDestination
+import com.example.consignmentProject.presentation.destinations.ExportConsignmentToExcelDestination
 import com.example.consignmentProject.utils.SimpleAlertDialog
 import com.example.utils.Admin_Uid
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.google.firebase.auth.FirebaseAuth
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
@@ -43,6 +48,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collectLatest
 import kotlin.math.roundToInt
 
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Destination(route = "/ConsignmentScreen")
 @Composable
 fun ConsignmentScreen(
@@ -114,6 +120,7 @@ fun ConsignmentScreen(
     Scaffold(
         modifier = Modifier
             .nestedScroll(nestedScrollConnection),
+
         floatingActionButton = {
             FloatingActionButton(
                 modifier = Modifier
@@ -291,26 +298,34 @@ fun ConsignmentScreen(
                     )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(state.consignments) { consignment ->
-                        ConsignmentItem(
-                            consignment = consignment,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    navigator.navigate(
-                                        AddEditConsignmentScreenDestination(
-                                            consignment = consignment
-                                        )
-                                    )
-                                },
-                            onDeleteClick = {
-                                viewModel.showAlertDialog = true
-                                deleteConsignment = consignment
-                            }
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
+                SwipeRefresh(
+                    state = rememberSwipeRefreshState(isRefreshing = viewModel.refreshState),
+                    onRefresh = {
+                        viewModel.onEvent(ConsignmentEvent.Refresh)
                     }
+                ) {
+                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                        items(state.consignments) { consignment ->
+                            ConsignmentItem(
+                                consignment = consignment,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        navigator.navigate(
+                                            AddEditConsignmentScreenDestination(
+                                                consignment = consignment
+                                            )
+                                        )
+                                    },
+                                onDeleteClick = {
+                                    viewModel.showAlertDialog = true
+                                    deleteConsignment = consignment
+                                }
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
+                    }
+
                 }
             }
             if (viewModel.isLoading) {

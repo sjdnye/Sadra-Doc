@@ -25,4 +25,11 @@ interface ConsignmentDao {
 
     @Query("SELECT * FROM Consignment WHERE day = :day ORDER BY title ASC")
     suspend fun getConsignmentsByDay(day: Int): List<Consignment>?
+    @Query("SELECT * FROM Consignment WHERE year = :year AND month = :month ORDER BY title ASC")
+    suspend fun getConsignmentsByYearAndMonth(year: Int, month: Int): List<Consignment>?
+
+    @Query("Delete FROM Consignment")
+    suspend fun deleteAllConsignments()
+    @Insert
+    suspend fun addAllConsignments(consignments: List<Consignment>)
 }

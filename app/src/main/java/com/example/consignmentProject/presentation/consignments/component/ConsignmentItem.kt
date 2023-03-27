@@ -55,35 +55,33 @@ fun ConsignmentItem(
                 .padding(end = 32.dp)
         ) {
             Text(
-                text = if (!expand)"Title: ${consignment.title}" else "Title:\n ${consignment.title}",
+                text = if (!expand) "Title: ${consignment.title}" else "Title:\n ${consignment.title}",
                 style = MaterialTheme.typography.h6,
                 maxLines = if (!expand) 1 else 5,
                 overflow = if (!expand) TextOverflow.Ellipsis else TextOverflow.Visible,
             )
             Spacer(modifier = Modifier.height(16.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceAround
-            ) {
-                if (consignment.weight.toString().isNotEmpty()) {
-                    Text(
-                        text = "Weight: ${consignment.weight.toString()}",
-                        style = MaterialTheme.typography.body1,
-                        maxLines = if (!expand) 1 else 5,
-                        overflow = if (!expand) TextOverflow.Ellipsis else TextOverflow.Visible
-                    )
-                }
-                if (consignment.cost.toString().isNotEmpty()){
-                    Text(
-                        text = "Cost: ${consignment.cost.toString()}",
-                        style = MaterialTheme.typography.body1,
-                        maxLines = if (!expand) 1 else 5,
-                        overflow = if (!expand) TextOverflow.Ellipsis else TextOverflow.Visible
-                    )
-                }
+
+            if (consignment.weight.toString().isNotEmpty()) {
+                Text(
+                    text = "Weight: ${consignment.weight.toString()} Kg",
+                    style = MaterialTheme.typography.body1,
+                    maxLines = if (!expand) 1 else 5,
+                    overflow = if (!expand) TextOverflow.Ellipsis else TextOverflow.Visible
+                )
+                Spacer(modifier = Modifier.height(16.dp))
             }
-            Spacer(modifier = Modifier.height(16.dp))
+            if (consignment.cost.toString().isNotEmpty()) {
+                Text(
+                    text = "Cost: ${consignment.cost.toString()} Rial",
+                    style = MaterialTheme.typography.body1,
+                    maxLines = if (!expand) 1 else 5,
+                    overflow = if (!expand) TextOverflow.Ellipsis else TextOverflow.Visible
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
             Text(
                 text = "Document Number: ${consignment.documentNumber}",
                 maxLines = 2,

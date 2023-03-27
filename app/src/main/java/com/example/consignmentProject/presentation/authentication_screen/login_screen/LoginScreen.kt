@@ -1,5 +1,6 @@
 package com.example.consignmentProject.presentation.authentication_screen.login_screen
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -26,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.consignmentProject.presentation.authentication_screen.AuthenticationViewModel
 import com.example.consignmentProject.presentation.destinations.ConsignmentScreenDestination
+
 import com.example.consignmentProject.presentation.export_consignments.component.ButtonGradiant
 import com.example.consignmentProject.ui.theme.LightBlue300
 import com.example.consignmentProject.ui.theme.LightBlue800
@@ -33,6 +35,7 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.flow.collectLatest
 
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Destination(route = "/LoginScreen")
 @Composable
 fun LoginScreen(

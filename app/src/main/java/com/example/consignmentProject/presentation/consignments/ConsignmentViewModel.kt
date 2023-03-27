@@ -5,27 +5,37 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.consignmentProject.data.local.Consignment
 import com.example.consignmentProject.domain.use_case.ConsignmentUseCase
 import com.example.utils.CONSIGNMENT_COLLECTION
 import com.example.consignmentProject.domain.utils.ConsignmentOrder
 import com.example.consignmentProject.utils.ConnectivityObserver
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.toObjects
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class ConsignmentViewModel @Inject constructor(
     private val consignmentUseCase: ConsignmentUseCase,
     private val firestore: FirebaseFirestore,
+    private val firebaseAuth: FirebaseAuth,
     private val connectivityObserver: ConnectivityObserver,
 ) : ViewModel() {
 
     private var connectionStatus by mutableStateOf<ConnectivityObserver.Status>(ConnectivityObserver.Status.Unavailable)
+
+    private var publisherId: String? = null
+
+    var refreshState by mutableStateOf(false)
 
     var state by mutableStateOf(ConsignmentState())
         private set
@@ -45,6 +55,7 @@ class ConsignmentViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
+            publisherId = firebaseAuth.uid
             checkInternetConnection()
         }
         getConsignments(state.searchQuery, state.consignmentOrder)
@@ -95,6 +106,9 @@ class ConsignmentViewModel @Inject constructor(
             is ConsignmentEvent.ToggleOrderSection -> {
                 state = state.copy(isOrderSectionVisible = !state.isOrderSectionVisible)
             }
+            is ConsignmentEvent.Refresh -> {
+                refreshItemsFromServer()
+            }
 
             else -> {}
         }
@@ -142,6 +156,30 @@ class ConsignmentViewModel @Inject constructor(
                 }
                 isLoading = false
             }
+    }
+
+    private fun refreshItemsFromServer() {
+        viewModelScope.launch {
+            try {
+                refreshState = true
+                require(publisherId != null)
+                val querySnapshot = firestore.collection(CONSIGNMENT_COLLECTION)
+                    .whereEqualTo("publisherId", publisherId)
+                    .get()
+                    .await()
+                val result = querySnapshot.toObjects<Consignment>() ?: emptyList()
+
+                consignmentUseCase.deleteAllConsignmentsUseCase()
+                consignmentUseCase.addAllConsignmentsUseCase(consignments = result)
+                refreshState = false
+
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    refreshState = false
+                    _eventFlow.emit(ConsignmentScreenUi.ShowMessage(e.message.toString()))
+                }
+            }
+        }
     }
 
 

@@ -43,7 +43,9 @@ object AppModule {
             getConsignmentUseCase = GetConsignmentUseCase(consignmentRepository),
             getConsignmentByIdUseCase = GetConsignmentByIdUseCase(consignmentRepository),
             insertConsignmentUseCase = InsertConsignmentUseCase(consignmentRepository),
-            deleteConsignmentUseCase = DeleteConsignmentUseCase(consignmentRepository)
+            deleteConsignmentUseCase = DeleteConsignmentUseCase(consignmentRepository),
+            deleteAllConsignmentsUseCase = DeleteAllConsignmentsUseCase(consignmentRepository),
+            addAllConsignmentsUseCase = AddAllConsignmentsUseCase(consignmentRepository)
         )
     }
     @Provides

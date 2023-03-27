@@ -35,6 +35,9 @@ class AdminExportDataViewModel @Inject constructor(
     private val application: Application
 ) : ViewModel() {
 
+    var isMonthSwitch by mutableStateOf(false)
+    var isYearSwitch by mutableStateOf(false)
+
     var numberOfConsignments by mutableStateOf<Int>(0)
     var consignments by mutableStateOf<List<Consignment>>(emptyList())
     var isLoading by mutableStateOf(false)
@@ -46,7 +49,8 @@ class AdminExportDataViewModel @Inject constructor(
     private var job: Job? = null
     private var jobAll: Job? = null
 
-    var selectedText by mutableStateOf("")
+    var selectedYear by mutableStateOf("")
+    var selectedMonth by mutableStateOf("")
 
 
     fun exportArticlesToExcel() {
@@ -66,7 +70,48 @@ class AdminExportDataViewModel @Inject constructor(
     }
 
 
-    fun getConsignmentsByYear(year: String) {
+    fun getConsignments() {
+        try {
+            val mapMonthToNumber: Int = when (selectedMonth) {
+                "فروردین" -> 1
+                "اردیبهشت" -> 2
+                "خرداد" -> 3
+                "تیر" -> 4
+                "مرداد" -> 5
+                "شهریور" -> 6
+                "مهر" -> 7
+                "آبان" -> 8
+                "آذر" -> 9
+                "دی" -> 10
+                "بهمن" -> 11
+                "اسفند" -> 12
+                else -> 0
+            }
+            if (isYearSwitch && isMonthSwitch) {
+                if (!selectedYear.isNullOrBlank() && !selectedMonth.isNullOrBlank()) {
+                    getConsignmentsByYearAndMonth(
+                        year = selectedYear.toInt(),
+                        month = mapMonthToNumber
+                    )
+                }
+            } else if (isYearSwitch) {
+                if (!selectedYear.isNullOrBlank()) {
+                    getConsignmentsByYear(year = selectedYear.toInt())
+                }
+            } else {
+                if (mapMonthToNumber > 0) {
+                    getConsignmentsByMonth(month = mapMonthToNumber)
+                }
+            }
+
+        } catch (e: Exception) {
+            viewModelScope.launch {
+                _eventFlow.emit(AdminUiEvent.ShowSnackBar(e.message.toString()))
+            }
+        }
+    }
+
+    private fun getConsignmentsByYear(year: Int) {
         consignments = emptyList()
         job?.cancel()
         job = CoroutineScope(Dispatchers.IO).launch {
@@ -92,6 +137,65 @@ class AdminExportDataViewModel @Inject constructor(
             }
             isLoading = false
         }
+    }
+
+    private fun getConsignmentsByMonth(month: Int) {
+        consignments = emptyList()
+        job?.cancel()
+        job = CoroutineScope(Dispatchers.IO).launch {
+            delay(500L)
+            isLoading = true
+            try {
+                val tempConsignments = mutableListOf<Consignment>()
+                val querySnapshot = firestore.collection(CONSIGNMENT_COLLECTION)
+                    .whereEqualTo("month", month)
+                    .get()
+                    .await()
+                for (document in querySnapshot.documents) {
+                    document.toObject<Consignment>()?.let { tempConsignments.add(it) }
+                }
+                consignments = tempConsignments
+                numberOfConsignments = if (consignments.isNotEmpty()) {
+                    consignments.size
+                } else {
+                    0
+                }
+            } catch (e: Exception) {
+                _eventFlow.emit(AdminUiEvent.ShowSnackBar(e.message.toString()))
+            }
+            isLoading = false
+        }
+
+    }
+
+    private fun getConsignmentsByYearAndMonth(year: Int, month: Int) {
+        consignments = emptyList()
+        job?.cancel()
+        job = CoroutineScope(Dispatchers.IO).launch {
+            delay(500L)
+            isLoading = true
+            try {
+                val tempConsignments = mutableListOf<Consignment>()
+                val querySnapshot = firestore.collection(CONSIGNMENT_COLLECTION)
+                    .whereEqualTo("year", year)
+                    .whereEqualTo("month", month)
+                    .get()
+                    .await()
+                for (document in querySnapshot.documents) {
+                    document.toObject<Consignment>()?.let { tempConsignments.add(it) }
+                }
+                consignments = tempConsignments
+                numberOfConsignments = if (consignments.isNotEmpty()) {
+                    consignments.size
+                } else {
+                    0
+                }
+            } catch (e: Exception) {
+                _eventFlow.emit(AdminUiEvent.ShowSnackBar(e.message.toString()))
+            }
+            isLoading = false
+        }
+
     }
 
     fun getAllConsignments() {
@@ -140,7 +244,7 @@ class AdminExportDataViewModel @Inject constructor(
         cell.setCellValue("Date")
 
         //column width
-        sheet.setColumnWidth(0, 30 * 200)
+        sheet.setColumnWidth(0, 60 * 200)
         sheet.setColumnWidth(1, 20 * 200)
         sheet.setColumnWidth(2, 10 * 200)
         sheet.setColumnWidth(3, 10 * 200)
@@ -168,7 +272,7 @@ class AdminExportDataViewModel @Inject constructor(
 
 
             //column width
-            sheet.setColumnWidth(0, 30 * 200)
+            sheet.setColumnWidth(0, 60 * 200)
             sheet.setColumnWidth(1, 20 * 200)
             sheet.setColumnWidth(2, 10 * 200)
             sheet.setColumnWidth(3, 10 * 200)
@@ -178,12 +282,13 @@ class AdminExportDataViewModel @Inject constructor(
         val fileName = "${folderName}${System.currentTimeMillis()}.xls"
         try {
 
-            val file = File("/storage/emulated/0/${File.separator}${folderName}${File.separator}${fileName}")
+            val file =
+                File("/storage/emulated/0/${File.separator}${folderName}${File.separator}${fileName}")
             val folder = File("/storage/emulated/0/${File.separator}${folderName}")
-            if (!folder.exists()){
+            if (!folder.exists()) {
                 folder.mkdir()
             }
-            if (!file.exists()){
+            if (!file.exists()) {
                 file.createNewFile()
             }
             val outputStream = FileOutputStream(file)

@@ -10,4 +10,5 @@ sealed class ConsignmentEvent {
     object RestoreConsignment : ConsignmentEvent()
     object ToggleOrderSection : ConsignmentEvent()
     object LogOut : ConsignmentEvent()
+    object Refresh : ConsignmentEvent()
 }

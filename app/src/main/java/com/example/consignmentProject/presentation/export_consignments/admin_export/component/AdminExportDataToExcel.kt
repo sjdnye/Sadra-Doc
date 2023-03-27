@@ -1,5 +1,6 @@
 package com.example.consignmentProject.presentation.export_consignments.admin_export.component
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -30,12 +31,14 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.consignmentProject.presentation.export_consignments.admin_export.AdminExportDataViewModel
+import com.example.consignmentProject.presentation.export_consignments.component.DropDownMenuMonth
 import com.example.consignmentProject.ui.theme.*
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Destination
 @Composable
 fun AdminExportConsignmentsToExcel(
@@ -76,7 +79,10 @@ fun AdminExportConsignmentsToExcel(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text = "Export consignments by admin", color = MaterialTheme.colors.primary)
+                    Text(
+                        text = "Export consignments by admin",
+                        color = MaterialTheme.colors.primary
+                    )
                 },
                 backgroundColor = MaterialTheme.colors.background,
                 navigationIcon = {
@@ -101,22 +107,61 @@ fun AdminExportConsignmentsToExcel(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(30.dp)
+                    .padding(start = 30.dp, end = 30.dp)
             ) {
 
-                Text(
-                    text = "Select a specific year:",
-                    style = MaterialTheme.typography.body2
-                )
-
-                Spacer(modifier = Modifier.height(5.dp))
-                DropDownMenuYear(
-                    selectedText = viewModel.selectedText,
-                    exportData = {
-                        viewModel.selectedText = it
-                        viewModel.getConsignmentsByYear(it)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceAround
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Switch(
+                            checked = viewModel.isYearSwitch,
+                            onCheckedChange = { viewModel.isYearSwitch = it })
+                        Text(text = "  Year")
                     }
-                )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Switch(
+                            checked = viewModel.isMonthSwitch,
+                            onCheckedChange = { viewModel.isMonthSwitch = it }
+                        )
+                        Text(text = "  Month")
+                    }
+                }
+                Spacer(modifier = Modifier.height(5.dp))
+
+                if (viewModel.isYearSwitch) {
+                    Text(
+                        text = "Select a specific year:",
+                        style = MaterialTheme.typography.body2
+                    )
+                    Spacer(modifier = Modifier.height(5.dp))
+                    com.example.consignmentProject.presentation.export_consignments.component.DropDownMenuYear(
+                        exportData = {
+                            viewModel.selectedYear = it
+                            viewModel.getConsignments()
+                        }
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                }
+                if (viewModel.isMonthSwitch) {
+                    Text(
+                        text = "Select a specific month:",
+                        style = MaterialTheme.typography.body2
+                    )
+                    Spacer(modifier = Modifier.height(5.dp))
+                    DropDownMenuMonth(
+                        exportData = {
+                            viewModel.selectedMonth = it
+                            viewModel.getConsignments()
+                        }
+                    )
+                }
                 Spacer(modifier = Modifier.height(20.dp))
 
                 ButtonGradiant(
@@ -130,7 +175,7 @@ fun AdminExportConsignmentsToExcel(
                         )
                     ),
                     onCLick = {
-                        viewModel.selectedText = ""
+                        viewModel.selectedYear = ""
                         viewModel.getAllConsignments()
                     }
                 )

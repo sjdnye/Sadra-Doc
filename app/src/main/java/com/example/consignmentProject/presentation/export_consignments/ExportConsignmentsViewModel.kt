@@ -31,6 +31,8 @@ class ExportConsignmentsViewModel @Inject constructor(
     private val application: Application
 ) : ViewModel() {
 
+    var isMonthSwitch by mutableStateOf(false)
+    var isYearSwitch by mutableStateOf(false)
     var numberOfConsignments by mutableStateOf<Int>(0)
     var consignments by mutableStateOf<List<Consignment>?>(null)
 
@@ -56,15 +58,80 @@ class ExportConsignmentsViewModel @Inject constructor(
 
     }
 
-    fun getConsignmentsByYear(year: String) {
+    fun getConsignments(year: String? = null, month: String? = null) {
+        try {
+            val mapMonthToNumber: Int = when (month) {
+                "فروردین" -> 1
+                "اردیبهشت" -> 2
+                "خرداد" -> 3
+                "تیر" -> 4
+                "مرداد" -> 5
+                "شهریور" -> 6
+                "مهر" -> 7
+                "آبان" -> 8
+                "آذر" -> 9
+                "دی" -> 10
+                "بهمن" -> 11
+                "اسفند" -> 12
+                else -> 0
+            }
+            if (isYearSwitch && isMonthSwitch) {
+                if (!year.isNullOrBlank() && !month.isNullOrBlank()) {
+                    getConsignmentsByYearAndMonth(year = year.toInt(), month = mapMonthToNumber)
+                }
+            } else if (isYearSwitch) {
+                if (!year.isNullOrBlank()) {
+                    getConsignmentsByYear(year = year.toInt())
+                }
+            } else {
+                if (mapMonthToNumber > 0) {
+                    getConsignmentsByMonth(month = mapMonthToNumber)
+                }
+            }
+
+        } catch (e: Exception) {
+            viewModelScope.launch {
+                _eventFlow.emit(UiEvent.ShowSnackBar(e.message.toString()))
+            }
+        }
+    }
+
+    private fun getConsignmentsByYear(year: Int) {
         viewModelScope.launch {
-            consignments = repository.getConsignmentsByYear(year.toInt())
+            consignments = repository.getConsignmentsByYear(year = year)
             numberOfConsignments = if (consignments != null) {
                 consignments!!.size
             } else {
                 0
             }
         }
+    }
+
+    private fun getConsignmentsByMonth(month: Int) {
+        viewModelScope.launch {
+            consignments = repository.getConsignmentsByMonth(month = month)
+            numberOfConsignments = if (consignments != null) {
+                consignments!!.size
+            } else {
+                0
+            }
+        }
+    }
+
+    private fun getConsignmentsByYearAndMonth(year: Int, month: Int) {
+
+        viewModelScope.launch {
+            consignments = repository.getConsignmentsByYearAndMonth(
+                year = year,
+                month = month
+            )
+            numberOfConsignments = if (consignments != null) {
+                consignments!!.size
+            } else {
+                0
+            }
+        }
+
     }
 
     private fun isAccessGranted(): Boolean {
@@ -103,7 +170,7 @@ class ExportConsignmentsViewModel @Inject constructor(
         cell.setCellValue("Date")
 
         //column width
-        sheet.setColumnWidth(0, 30 * 200)
+        sheet.setColumnWidth(0, 60 * 200)
         sheet.setColumnWidth(1, 20 * 200)
         sheet.setColumnWidth(2, 10 * 200)
         sheet.setColumnWidth(3, 10 * 200)
@@ -131,7 +198,7 @@ class ExportConsignmentsViewModel @Inject constructor(
 
 
             //column width
-            sheet.setColumnWidth(0, 30 * 200)
+            sheet.setColumnWidth(0, 60 * 200)
             sheet.setColumnWidth(1, 20 * 200)
             sheet.setColumnWidth(2, 10 * 200)
             sheet.setColumnWidth(3, 10 * 200)

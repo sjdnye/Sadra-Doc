@@ -26,6 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.consignmentProject.presentation.authentication_screen.AuthenticationViewModel
 import com.example.consignmentProject.presentation.destinations.LoginScreenDestination
 import com.example.consignmentProject.presentation.destinations.RegisterScreenDestination
+
 import com.example.consignmentProject.ui.theme.LightBlue300
 import com.example.consignmentProject.ui.theme.LightBlue800
 import com.google.firebase.auth.FirebaseAuth

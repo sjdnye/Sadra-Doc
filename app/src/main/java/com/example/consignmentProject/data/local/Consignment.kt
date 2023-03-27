@@ -17,7 +17,7 @@ data class Consignment(
     val month: Int? = null,
     val year: Int? = null,
     val title: String = "",
-    val weight: Int? = null,
+    val weight: Double? = null,
     val cost: Long? = null,
     val consignmentAddTimeToDatabase: Long = 0,
 ): Parcelable

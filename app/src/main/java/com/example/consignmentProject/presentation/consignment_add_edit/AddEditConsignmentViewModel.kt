@@ -6,10 +6,12 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.consignmentProject.data.local.Consignment
 import com.example.consignmentProject.domain.use_case.ConsignmentUseCase
 import com.example.consignmentProject.utils.ConnectivityObserver
 import com.example.utils.CONSIGNMENT_COLLECTION
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -22,6 +24,7 @@ import javax.inject.Inject
 class AddEditConsignmentViewModel @Inject constructor(
     private val consignmentUseCase: ConsignmentUseCase,
     private val fireStore: FirebaseFirestore,
+    private val firebaseAuth: FirebaseAuth,
     private val connectivityObserver: ConnectivityObserver,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -104,22 +107,34 @@ class AddEditConsignmentViewModel @Inject constructor(
                     }
 
                 } else {
-                    val consignment = Consignment(
-                        id = currentConsignmentId,
-                        title = state.title,
-                        weight = state.weight.toInt(),
-                        cost = state.cost.toLong(),
-                        documentNumber = state.documentNumber.toLong(),
-                        consignmentAddTimeToDatabase = System.currentTimeMillis(),
-                        year = state.year.toInt(),
-                        month = state.month.toInt(),
-                        day = state.day.toInt(),
-                        firestoreId = state.fireStoreId
-                    )
-                    if (state.fireStoreId == null) {
-                        addToFireStoreDatabase(consignment)
-                    } else {
-                        updateConsignmentInFireStore(consignment)
+                    try {
+                        val month = state.month.toInt()
+                        val day = state.day.toInt()
+                        if (month > 12 || month < 1 || day > 31 || day < 1){
+                            throw Exception("Month or day is not in valid range!!")
+                        }
+                        val consignment = Consignment(
+                            id = currentConsignmentId,
+                            title = state.title,
+                            weight = state.weight.toDoubleOrNull(),
+                            cost = state.cost.toLong(),
+                            documentNumber = state.documentNumber.toLong(),
+                            consignmentAddTimeToDatabase = System.currentTimeMillis(),
+                            year = state.year.toInt(),
+                            month = state.month.toInt(),
+                            day = state.day.toInt(),
+                            firestoreId = state.fireStoreId,
+                            publisherId = firebaseAuth.uid!!
+                        )
+                        if (state.fireStoreId == null) {
+                            addToFireStoreDatabase(consignment)
+                        } else {
+                            updateConsignmentInFireStore(consignment)
+                        }
+                    } catch (e: Exception) {
+                        viewModelScope.launch {
+                            _eventFlow.emit(UiEvent.ShowSnackBar(e.message.toString()))
+                        }
                     }
                 }
             }
@@ -148,7 +163,7 @@ class AddEditConsignmentViewModel @Inject constructor(
 
     private fun addToFireStoreDatabase(consignment: Consignment) {
         isLoading = true
-        val dbCollection = fireStore.collection("articles")
+        val dbCollection = fireStore.collection(CONSIGNMENT_COLLECTION)
         val tempId = dbCollection.document().id
         consignment.firestoreId = tempId
         dbCollection.document(tempId).set(consignment).addOnCompleteListener {

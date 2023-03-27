@@ -4,5 +4,7 @@ data class ConsignmentUseCase(
     val deleteConsignmentUseCase: DeleteConsignmentUseCase,
     val insertConsignmentUseCase: InsertConsignmentUseCase,
     val getConsignmentUseCase: GetConsignmentUseCase,
-    val getConsignmentByIdUseCase: GetConsignmentByIdUseCase
+    val getConsignmentByIdUseCase: GetConsignmentByIdUseCase,
+    val deleteAllConsignmentsUseCase: DeleteAllConsignmentsUseCase,
+    val addAllConsignmentsUseCase: AddAllConsignmentsUseCase
 )

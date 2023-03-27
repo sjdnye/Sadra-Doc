@@ -1,5 +1,6 @@
 package com.example.consignmentProject.presentation.export_consignments.component
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,6 +13,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
+import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
@@ -34,6 +36,7 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Destination
 @Composable
 fun ExportConsignmentToExcel(
@@ -45,6 +48,9 @@ fun ExportConsignmentToExcel(
 
     var selectedYear by remember {
         mutableStateOf<String>("")
+    }
+    var selectedMonth by remember {
+        mutableStateOf("")
     }
     LaunchedEffect(key1 = true) {
         viewModel.eventFlow.collectLatest { event ->
@@ -96,17 +102,63 @@ fun ExportConsignmentToExcel(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(30.dp)
+                .padding(start = 30.dp, end = 30.dp)
         ) {
-            Text(text = "Select a specific year:",
-                style = MaterialTheme.typography.body2
-          )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = CenterVertically,
+                horizontalArrangement = Arrangement.SpaceAround
+            ){
+                Row(
+                    verticalAlignment = CenterVertically
+                ) {
+                    Switch(
+                        checked = viewModel.isYearSwitch,
+                        onCheckedChange = { viewModel.isYearSwitch = it })
+                    Text(text = "  Year")
+                }
+                Row(
+                    verticalAlignment = CenterVertically
+                ) {
+                    Switch(
+                        checked = viewModel.isMonthSwitch,
+                        onCheckedChange = { viewModel.isMonthSwitch = it }
+                    )
+                    Text(text = "  Month")
+                }
+            }
             Spacer(modifier = Modifier.height(5.dp))
-            DropDownMenuYear(exportData = {
-                selectedYear = it
-                viewModel.getConsignmentsByYear(selectedYear)
-            })
 
+            if (viewModel.isYearSwitch){
+                Text(
+                    text = "Select a specific year:",
+                    style = MaterialTheme.typography.body2
+                )
+                Spacer(modifier = Modifier.height(5.dp))
+                DropDownMenuYear(
+                    exportData = {
+                        selectedYear = it
+                        viewModel.getConsignments(year = selectedYear, month = selectedMonth)
+                    }
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+            }
+            if (viewModel.isMonthSwitch) {
+                Text(
+                    text = "Select a specific month:",
+                    style = MaterialTheme.typography.body2
+                )
+                Spacer(modifier = Modifier.height(5.dp))
+                DropDownMenuMonth(
+                    exportData = {
+                        selectedMonth = it
+                        viewModel.getConsignments(
+                            year = selectedYear,
+                            month = selectedMonth
+                        )
+                    }
+                )
+            }
             Spacer(modifier = Modifier.height(50.dp))
 
             Text(
@@ -143,7 +195,9 @@ fun ExportConsignmentToExcel(
 }
 
 @Composable
-fun DropDownMenuYear(exportData: (selectedText: String) -> Unit) {
+fun DropDownMenuYear(
+    exportData: (selectedText: String) -> Unit
+) {
 
     var expanded by remember { mutableStateOf(false) }
     val suggestions = mutableListOf<String>()
@@ -158,7 +212,6 @@ fun DropDownMenuYear(exportData: (selectedText: String) -> Unit) {
         Icons.Filled.KeyboardArrowUp
     else
         Icons.Filled.KeyboardArrowDown
-
 
     Column() {
         OutlinedTextField(
@@ -192,6 +245,77 @@ fun DropDownMenuYear(exportData: (selectedText: String) -> Unit) {
                     expanded = false
                     exportData(selectedText)
                 }) {
+                    Text(text = label)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun DropDownMenuMonth(
+    exportData: (selectedText: String) -> Unit
+) {
+
+    var expanded by remember { mutableStateOf(false) }
+    val suggestions = listOf<String>(
+        "فروردین",
+        "اردیبهشت",
+        "خرداد",
+        "تیر",
+        "مرداد",
+        "شهریور",
+        "مهر",
+        "آبان",
+        "آذر",
+        "دی",
+        "بهمن",
+        "اسفند"
+    )
+    var selectedText by remember { mutableStateOf("") }
+
+    var textFieldSize by remember { mutableStateOf(Size.Zero) }
+
+    val icon = if (expanded)
+        Icons.Filled.KeyboardArrowUp
+    else
+        Icons.Filled.KeyboardArrowDown
+
+    Column() {
+        OutlinedTextField(
+            value = selectedText,
+            onValueChange = {
+                selectedText = it
+                exportData(selectedText)
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .onGloballyPositioned { coordinates ->
+                    //This value is used to assign to the DropDown the same width
+                    textFieldSize = coordinates.size.toSize()
+                },
+            label = { Text("Month") },
+            trailingIcon = {
+                Icon(icon, "contentDescription",
+                    Modifier.clickable { expanded = !expanded })
+            },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+            enabled = false
+        )
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier
+                .width(with(LocalDensity.current) { textFieldSize.width.toDp() })
+        ) {
+            suggestions.forEach { label ->
+                DropdownMenuItem(
+                    onClick = {
+                        selectedText = label
+                        expanded = false
+                        exportData(selectedText)
+                    }
+                ) {
                     Text(text = label)
                 }
             }

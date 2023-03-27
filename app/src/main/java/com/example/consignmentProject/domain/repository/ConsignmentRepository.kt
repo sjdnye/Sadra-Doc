@@ -6,16 +6,13 @@ import kotlinx.coroutines.flow.Flow
 interface ConsignmentRepository {
 
     fun getConsignments(query: String): Flow<List<Consignment>>
-
     suspend fun getConsignmentById(id: Int): Consignment?
-
     suspend fun insertConsignment(consignment: Consignment)
-
     suspend fun deleteConsignment(consignment: Consignment)
-
     suspend fun getConsignmentsByYear(year: Int): List<Consignment>?
-
     suspend fun getConsignmentsByMonth(month: Int): List<Consignment>?
-
     suspend fun getConsignmentsByDay(day: Int): List<Consignment>?
+    suspend fun getConsignmentsByYearAndMonth(year: Int, month: Int): List<Consignment>?
+    suspend fun deleteAllConsignments()
+    suspend  fun addAllConsignments(consignments: List<Consignment>)
 }
