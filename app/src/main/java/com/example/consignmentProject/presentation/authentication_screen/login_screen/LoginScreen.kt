@@ -15,8 +15,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.Start
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -28,6 +30,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.consignmentProject.presentation.authentication_screen.AuthenticationViewModel
 import com.example.consignmentProject.presentation.destinations.ConsignmentScreenDestination
 
+
 import com.example.consignmentProject.presentation.export_consignments.component.ButtonGradiant
 import com.example.consignmentProject.ui.theme.LightBlue300
 import com.example.consignmentProject.ui.theme.LightBlue800
@@ -35,6 +38,7 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.flow.collectLatest
 
+@OptIn(ExperimentalComposeUiApi::class)
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Destination(route = "/LoginScreen")
 @Composable
@@ -42,6 +46,8 @@ fun LoginScreen(
     navigator: DestinationsNavigator,
     viewModel: AuthenticationViewModel = hiltViewModel()
 ) {
+
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     val scaffoldState = rememberScaffoldState()
     var email by remember {
@@ -54,7 +60,7 @@ fun LoginScreen(
         viewModel.loginEventFlow.collectLatest { event ->
             when (event) {
                 is AuthenticationViewModel.AuthenticationUi.NavigateToMainScreen -> {
-                    navigator.navigate(ConsignmentScreenDestination()) {
+                    navigator.navigate(ConsignmentScreenDestination(isNewUser = true)) {
                         popUpTo("/LoginScreen") { inclusive = true }
                         popUpTo("/MainAuthenticationScreen") { inclusive = true }
                     }
@@ -178,6 +184,7 @@ fun LoginScreen(
                         )
                     ),
                     onCLick = {
+                        keyboardController?.hide()
                         viewModel.loginUser(password = password, email = email)
                     }
                 )

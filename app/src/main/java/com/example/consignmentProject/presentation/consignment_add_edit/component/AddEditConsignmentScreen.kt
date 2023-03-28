@@ -13,11 +13,13 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
@@ -29,6 +31,7 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.flow.collectLatest
 
+@OptIn(ExperimentalComposeUiApi::class)
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Destination
 @Composable
@@ -41,6 +44,8 @@ fun AddEditConsignmentScreen(
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
+
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     LaunchedEffect(key1 = true) {
         viewModel.eventFlow.collectLatest { event ->
@@ -92,6 +97,7 @@ fun AddEditConsignmentScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
+                    keyboardController?.hide()
                     viewModel.onEvent(AddEditConsignmentEvent.SaveConsignment)
                 },
                 backgroundColor = MaterialTheme.colors.secondary,

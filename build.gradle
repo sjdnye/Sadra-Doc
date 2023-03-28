@@ -1,6 +1,7 @@
 buildscript {
     ext {
         compose_version = '1.2.0-alpha05'
+        accompanist_version = '0.25.0'
     }
     repositories {
         google()

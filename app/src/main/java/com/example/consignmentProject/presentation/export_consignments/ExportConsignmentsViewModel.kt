@@ -134,7 +134,7 @@ class ExportConsignmentsViewModel @Inject constructor(
 
     }
 
-    private fun isAccessGranted(): Boolean {
+    fun isAccessGranted(): Boolean {
         val hasAccessWriteStoragePermission = ContextCompat.checkSelfPermission(
             application,
             Manifest.permission.WRITE_EXTERNAL_STORAGE

@@ -115,6 +115,8 @@ dependencies {
 
 //    implementation "com.google.accompanist:accompanist-permission:0.24.12-rc"
     implementation "com.google.accompanist:accompanist-systemuicontroller:0.23.1"
+    implementation "com.google.accompanist:accompanist-permissions:0.23.1"
+    implementation "com.google.accompanist:accompanist-pager:0.23.1"
 
     //splash-screen dependency
     implementation 'androidx.core:core-splashscreen:1.0.0'

@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.consignmentProject.R
 import com.example.consignmentProject.presentation.destinations.ConsignmentScreenDestination
+
 import com.example.consignmentProject.presentation.destinations.MainAuthenticationScreenDestination
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
@@ -29,7 +30,7 @@ fun SplashScreen(
             popUpTo("/SplashScreen") { inclusive = true }
         }
     } else if (viewModel.state == 2) {
-        navigator.navigate(ConsignmentScreenDestination()){
+        navigator.navigate(ConsignmentScreenDestination(isNewUser = false)){
             popUpTo("/SplashScreen") { inclusive = true }
         }
     }

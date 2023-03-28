@@ -11,7 +11,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
 import com.example.consignmentProject.data.local.Consignment
-import com.example.consignmentProject.presentation.export_consignments.UiEvent
 import com.example.utils.CONSIGNMENT_COLLECTION
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.toObject
@@ -53,7 +52,7 @@ class AdminExportDataViewModel @Inject constructor(
     var selectedMonth by mutableStateOf("")
 
 
-    fun exportArticlesToExcel() {
+    fun exportConsignmentsToExcel() {
         if (isAccessGranted()) {
             if (numberOfConsignments == 0) {
                 viewModelScope.launch {
@@ -308,7 +307,7 @@ class AdminExportDataViewModel @Inject constructor(
         }
     }
 
-    private fun isAccessGranted(): Boolean {
+    fun isAccessGranted(): Boolean {
         val hasAccessWriteStoragePermission = ContextCompat.checkSelfPermission(
             application,
             Manifest.permission.WRITE_EXTERNAL_STORAGE

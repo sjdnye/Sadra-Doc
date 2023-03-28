@@ -3,6 +3,7 @@ package com.example.consignmentProject.presentation.consignments
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -29,6 +30,7 @@ class ConsignmentViewModel @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val firebaseAuth: FirebaseAuth,
     private val connectivityObserver: ConnectivityObserver,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private var connectionStatus by mutableStateOf<ConnectivityObserver.Status>(ConnectivityObserver.Status.Unavailable)
@@ -58,7 +60,17 @@ class ConsignmentViewModel @Inject constructor(
             publisherId = firebaseAuth.uid
             checkInternetConnection()
         }
-        getConsignments(state.searchQuery, state.consignmentOrder)
+        savedStateHandle.get<Boolean>("isNewUser")?.let { isNewUser ->
+            if (isNewUser) {
+                viewModelScope.launch {
+                    deleteAllConsignments()
+                }
+                refreshItemsFromServer()
+                getConsignments(state.searchQuery, state.consignmentOrder)
+            } else {
+                getConsignments(state.searchQuery, state.consignmentOrder)
+            }
+        }
     }
 
     private suspend fun checkInternetConnection() {
@@ -169,8 +181,9 @@ class ConsignmentViewModel @Inject constructor(
                     .await()
                 val result = querySnapshot.toObjects<Consignment>() ?: emptyList()
 
-                consignmentUseCase.deleteAllConsignmentsUseCase()
-                consignmentUseCase.addAllConsignmentsUseCase(consignments = result)
+                deleteAllConsignments()
+                addAllConsignments(consignments = result)
+
                 refreshState = false
 
             } catch (e: Exception) {
@@ -180,6 +193,14 @@ class ConsignmentViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    private suspend fun deleteAllConsignments() {
+        consignmentUseCase.deleteAllConsignmentsUseCase()
+    }
+
+    private suspend fun addAllConsignments(consignments: List<Consignment>) {
+        consignmentUseCase.addAllConsignmentsUseCase(consignments = consignments)
     }
 
 

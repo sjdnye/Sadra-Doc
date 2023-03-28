@@ -1,6 +1,13 @@
 package com.example.consignmentProject.presentation.export_consignments.admin_export.component
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -11,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Storage
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
@@ -21,6 +29,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -33,11 +42,16 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.consignmentProject.presentation.export_consignments.admin_export.AdminExportDataViewModel
 import com.example.consignmentProject.presentation.export_consignments.component.DropDownMenuMonth
 import com.example.consignmentProject.ui.theme.*
+import com.example.utils.*
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberPermissionState
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
+
+@OptIn(ExperimentalPermissionsApi::class)
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Destination
 @Composable
@@ -47,6 +61,24 @@ fun AdminExportConsignmentsToExcel(
 ) {
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+//    val storageWritePermission =
+//        rememberPermissionState(permission = Manifest.permission.WRITE_EXTERNAL_STORAGE)
+//    val storageReadPermission =
+//        rememberPermissionState(permission = Manifest.permission.READ_EXTERNAL_STORAGE)
+//    val storageManagePermission =
+//        rememberPermissionState(permission = Manifest.permission.MANAGE_EXTERNAL_STORAGE)
+
+
+    val showStoragePermissionRationale = remember { mutableStateOf(ShowRationale()) }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions(),
+        onResult = {
+
+        }
+    )
 
 
     LaunchedEffect(key1 = true) {
@@ -207,14 +239,61 @@ fun AdminExportConsignmentsToExcel(
                         )
                     ),
                     onCLick = {
-                        viewModel.exportArticlesToExcel()
+                        if (viewModel.isAccessGranted()) {
+                            viewModel.exportConsignmentsToExcel()
+                        } else {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                                permissionLauncher.launch(
+                                    arrayOf(
+                                        Manifest.permission.READ_EXTERNAL_STORAGE,
+                                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                                        Manifest.permission.MANAGE_EXTERNAL_STORAGE
+                                    )
+                                )
+                                val intent =
+                                    Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+                                val uri = Uri.fromParts(
+                                    "package",
+                                    context.packageName, null
+                                )
+                                intent.data = uri
+                                context.startActivity(intent)
+                            } else {
+                                permissionLauncher.launch(
+                                    arrayOf(
+                                        Manifest.permission.READ_EXTERNAL_STORAGE,
+                                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                                    )
+                                )
+                            }
+                        }
                     }
                 )
-
-                Spacer(modifier = Modifier.height(30.dp))
-
             }
-
+//            if (showStoragePermissionRationale.value.showDialog) {
+//                PermissionRationaleDialog(
+//                    message = showStoragePermissionRationale.value.message,
+//                    imageVector = showStoragePermissionRationale.value.imageVector!!,
+//                    onRequestPermission = {
+//                        showStoragePermissionRationale.value =
+//                            showStoragePermissionRationale.value.copy(showDialog = false)
+//                        when (showStoragePermissionRationale.value.permission) {
+//                            WRITE_STORAGE_PERMISSION -> {
+//                                storageWritePermission.launchPermissionRequest()
+//                            }
+//                            READ_STORAGE_PERMISSION -> {
+//                                storageReadPermission.launchPermissionRequest()
+//                            }
+//                            MANAGE_STORAGE_PERMISSION -> {
+//                                storageManagePermission.launchPermissionRequest()
+//                            }
+//                        }
+//                    }
+//                ) {
+//                    showStoragePermissionRationale.value =
+//                        showStoragePermissionRationale.value.copy(showDialog = false)
+//                }
+//            }
         }
     }
 }

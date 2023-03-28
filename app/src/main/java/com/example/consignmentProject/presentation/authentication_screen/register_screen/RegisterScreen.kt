@@ -13,8 +13,10 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -32,6 +34,7 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.flow.collectLatest
 
+@OptIn(ExperimentalComposeUiApi::class)
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Destination(route = "/RegisterScreen")
 @Composable
@@ -39,6 +42,8 @@ fun RegisterScreen(
     navigator: DestinationsNavigator,
     viewModel: AuthenticationViewModel = hiltViewModel()
 ) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+
     var password by remember {
         mutableStateOf("")
     }
@@ -50,16 +55,16 @@ fun RegisterScreen(
     }
     val scaffoldState = rememberScaffoldState()
 
-    LaunchedEffect(key1 = true){
+    LaunchedEffect(key1 = true) {
         viewModel.registerEventFlow.collectLatest { event ->
-            when(event){
+            when (event) {
                 is AuthenticationViewModel.AuthenticationUi.NavigateToMainScreen -> {
-                    navigator.navigate(ConsignmentScreenDestination()){
-                        popUpTo("/RegisterScreen"){ inclusive = true}
-                        popUpTo("/MainAuthenticationScreen"){ inclusive = true}
+                    navigator.navigate(ConsignmentScreenDestination(isNewUser = true)) {
+                        popUpTo("/RegisterScreen") { inclusive = true }
+                        popUpTo("/MainAuthenticationScreen") { inclusive = true }
                     }
                 }
-                is AuthenticationViewModel.AuthenticationUi.ShowMessage ->{
+                is AuthenticationViewModel.AuthenticationUi.ShowMessage -> {
                     scaffoldState.snackbarHostState.showSnackbar(
                         message = event.message
                     )
@@ -101,7 +106,7 @@ fun RegisterScreen(
                 .background(MaterialTheme.colors.background),
             contentAlignment = Alignment.Center
         ) {
-            if (viewModel.registerLoading){
+            if (viewModel.registerLoading) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
             Column(
@@ -201,6 +206,7 @@ fun RegisterScreen(
                         )
                     ),
                     onCLick = {
+                        keyboardController?.hide()
                         viewModel.createNewAccount(
                             password = password,
                             confirmPassWord = confirmPassword,

@@ -53,7 +53,8 @@ import kotlin.math.roundToInt
 @Composable
 fun ConsignmentScreen(
     navigator: DestinationsNavigator,
-    viewModel: ConsignmentViewModel = hiltViewModel()
+    viewModel: ConsignmentViewModel = hiltViewModel(),
+    isNewUser: Boolean
 ) {
     val context = LocalContext.current
 
