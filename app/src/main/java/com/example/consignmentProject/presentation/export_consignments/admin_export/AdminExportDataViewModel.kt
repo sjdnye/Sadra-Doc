@@ -245,8 +245,8 @@ class AdminExportDataViewModel @Inject constructor(
         //column width
         sheet.setColumnWidth(0, 60 * 200)
         sheet.setColumnWidth(1, 20 * 200)
-        sheet.setColumnWidth(2, 10 * 200)
-        sheet.setColumnWidth(3, 10 * 200)
+        sheet.setColumnWidth(2, 20 * 200)
+        sheet.setColumnWidth(3, 20 * 200)
         sheet.setColumnWidth(4, 20 * 200)
 
 
@@ -273,8 +273,8 @@ class AdminExportDataViewModel @Inject constructor(
             //column width
             sheet.setColumnWidth(0, 60 * 200)
             sheet.setColumnWidth(1, 20 * 200)
-            sheet.setColumnWidth(2, 10 * 200)
-            sheet.setColumnWidth(3, 10 * 200)
+            sheet.setColumnWidth(2, 20 * 200)
+            sheet.setColumnWidth(3, 20 * 200)
             sheet.setColumnWidth(4, 20 * 200)
         }
         val folderName = "Import Excel"

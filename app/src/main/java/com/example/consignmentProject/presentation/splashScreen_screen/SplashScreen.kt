@@ -1,6 +1,7 @@
 package com.example.consignmentProject.presentation.splashScreen_screen
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -30,13 +31,13 @@ fun SplashScreen(
             popUpTo("/SplashScreen") { inclusive = true }
         }
     } else if (viewModel.state == 2) {
-        navigator.navigate(ConsignmentScreenDestination(isNewUser = false)){
+        navigator.navigate(ConsignmentScreenDestination(isNewUser = false)) {
             popUpTo("/SplashScreen") { inclusive = true }
         }
     }
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center){
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Image(
-            painter = painterResource(id = R.drawable.itrc_edit),
+            painter = painterResource(id = if (isSystemInDarkTheme()) R.drawable.splash_night else R.drawable.splash_light),
             contentDescription = "splash screen image",
             modifier = Modifier.size(200.dp)
         )

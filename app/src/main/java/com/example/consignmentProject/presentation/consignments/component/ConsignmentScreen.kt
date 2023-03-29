@@ -26,6 +26,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -190,6 +191,16 @@ fun ConsignmentScreen(
         }
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
+
+            if (viewModel.state.consignments.isEmpty()){
+                Text(
+                    text = "There is nothing to show",
+                    modifier = Modifier
+                        .align(Alignment.Center),
+                    textAlign = TextAlign.Center,
+
+                )
+            }
 
             if (viewModel.showAlertDialog) {
                 SimpleAlertDialog(

@@ -2,6 +2,7 @@ package com.example.consignmentProject.presentation.authentication_screen.main_a
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Button
@@ -23,6 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.consignmentProject.R
 import com.example.consignmentProject.presentation.authentication_screen.AuthenticationViewModel
 import com.example.consignmentProject.presentation.destinations.LoginScreenDestination
 import com.example.consignmentProject.presentation.destinations.RegisterScreenDestination
@@ -46,25 +48,27 @@ fun MainAuthenticationScreen(
             .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-//        Image(
-//            painter = painterResource(id = R.drawable.itrc_edit),
-//            contentDescription = "main background",
-//            contentScale = ContentScale.Crop,
-//            modifier = Modifier
-//                .align(alignment = TopCenter)
-//                .padding(top = 200.dp)
-//        )
+        Image(
+            painter = painterResource(if (isSystemInDarkTheme()) R.drawable.splash_night else R.drawable.splash_light),
+            contentDescription = "main background",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .align(alignment = TopCenter)
+                .size(200.dp)
+                .padding(top = 50.dp)
+        )
+
         Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = CenterHorizontally
         ) {
             Text(
-                text = "ITRC/Articles",
+                text = "Sadra Document",
                 modifier = Modifier.align(CenterHorizontally),
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colors.onBackground,
                 style = TextStyle(
-                    fontSize = 40.sp,
+                    fontSize = 30.sp,
                     fontWeight = FontWeight.Bold,
                 )
             )
