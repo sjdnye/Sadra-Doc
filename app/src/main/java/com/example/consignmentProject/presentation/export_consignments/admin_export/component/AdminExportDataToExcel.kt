@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.toSize
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.consignmentProject.presentation.export_consignments.admin_export.AdminExportDataViewModel
 import com.example.consignmentProject.presentation.export_consignments.component.DropDownMenuMonth
+import com.example.consignmentProject.presentation.export_consignments.component.DropDownMenuYear
 import com.example.consignmentProject.ui.theme.*
 import com.example.utils.*
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -173,7 +174,7 @@ fun AdminExportConsignmentsToExcel(
                         style = MaterialTheme.typography.body2
                     )
                     Spacer(modifier = Modifier.height(5.dp))
-                    com.example.consignmentProject.presentation.export_consignments.component.DropDownMenuYear(
+                    DropDownMenuYear(
                         exportData = {
                             viewModel.selectedYear = it
                             viewModel.getConsignments()
@@ -220,8 +221,8 @@ fun AdminExportConsignmentsToExcel(
                     text = "${viewModel.numberOfConsignments} consignment(s) was found",
                     textAlign = TextAlign.Center,
                     style = TextStyle(
-                        fontSize = 30.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Medium,
                         color = if (!viewModel.isLoading) LightBlue700 else BlueGray500
                     )
                 )

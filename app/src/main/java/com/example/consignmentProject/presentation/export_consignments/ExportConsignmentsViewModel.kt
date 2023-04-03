@@ -226,7 +226,7 @@ class ExportConsignmentsViewModel @Inject constructor(
             outputStream.close()
 
             viewModelScope.launch {
-                _eventFlow.emit(UiEvent.ShowSnackBar("Excel file was created in \"/storage/emulated/0/Export Excel/\" successfully!"))
+                _eventFlow.emit(UiEvent.ShowSnackBar("Excel file was created in \"/storage/emulated/0/${folderName}/\" successfully!"))
             }
 
         } catch (e: Exception) {

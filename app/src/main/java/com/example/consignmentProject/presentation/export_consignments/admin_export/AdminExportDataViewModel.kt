@@ -277,7 +277,7 @@ class AdminExportDataViewModel @Inject constructor(
             sheet.setColumnWidth(3, 20 * 200)
             sheet.setColumnWidth(4, 20 * 200)
         }
-        val folderName = "Import Excel"
+        val folderName = "Export Excel By Admin"
         val fileName = "${folderName}${System.currentTimeMillis()}.xls"
         try {
 
@@ -297,7 +297,7 @@ class AdminExportDataViewModel @Inject constructor(
             outputStream.close()
 
             viewModelScope.launch {
-                _eventFlow.emit(AdminUiEvent.ShowSnackBar("Articles added to  excel file successfully!"))
+                _eventFlow.emit(AdminUiEvent.ShowSnackBar("Excel file was created in \"/storage/emulated/0/${folderName}/\" successfully!"))
             }
 
         } catch (e: Exception) {

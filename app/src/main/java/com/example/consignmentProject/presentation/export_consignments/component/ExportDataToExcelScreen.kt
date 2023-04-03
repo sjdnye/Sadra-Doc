@@ -241,8 +241,8 @@ fun ExportConsignmentToExcel(
                     text = "${viewModel.numberOfConsignments} consignment(s) was found",
                     textAlign = TextAlign.Center,
                     style = TextStyle(
-                        fontSize = 30.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Medium,
                         color = LightBlue700
                     )
                 )
@@ -534,7 +534,7 @@ fun DropDownMenuMonth(
                     Modifier.clickable { expanded = !expanded })
             },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            enabled = false
+            readOnly = true
         )
         DropdownMenu(
             expanded = expanded,
